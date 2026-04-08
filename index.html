@@ -284,6 +284,12 @@
       white-space: normal;
     }
 
+    .wiki-source {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #666;
+    }
+
     .wiki-link {
       display: inline-block;
       margin-top: 10px;
@@ -502,7 +508,7 @@
 
           <div class="wiki-box" id="wikiBox">
             <div class="section-title">위키백과</div>
-            <div class="wiki-line">병원을 클릭하면 한국어 위키백과 요약이 표시됩니다.</div>
+            <div class="wiki-line">병원을 클릭하면 한국어 위키백과를 먼저 조회하고, 없으면 영어 위키백과를 한국어로 번역해 표시합니다.</div>
           </div>
         </div>
       </div>
@@ -515,7 +521,7 @@
   ></script>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxm2L6ziTu2LNX8S02P0wszRo2xFVjhlUCG4XG3ujxwxuHpHLJYWzMWflXZ9ywnuAc/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyecb6Jx2LWR69zPBZwFKFRW-n1qftPoKg856aT7EQaCX0aAez5pNDATLnQOdP2wKiW/exec';
 
     let map;
     let airportMarker = null;
@@ -838,7 +844,7 @@
       const box = document.getElementById('wikiBox');
       box.innerHTML = `
         <div class="section-title">위키백과</div>
-        <div class="wiki-line">병원을 클릭하면 한국어 위키백과 요약이 표시됩니다.</div>
+        <div class="wiki-line">병원을 클릭하면 한국어 위키백과를 먼저 조회하고, 없으면 영어 위키백과를 한국어로 번역해 표시합니다.</div>
       `;
     }
 
@@ -851,61 +857,7 @@
       `;
     }
 
-    function normalizeHospitalName(name) {
-      return String(name || '')
-        .replace(/\s*\([^)]*\)\s*/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-    }
-
-    function getWikipediaCandidates(name) {
-      const base = normalizeHospitalName(name);
-      const candidates = [];
-
-      if (base) candidates.push(base);
-
-      if (base.includes('순천향대학교 부속 부천병원')) {
-        candidates.push('순천향대학교 부속 부천병원');
-      }
-
-      if (base.includes('서울대학교병원')) candidates.push('서울대학교병원');
-      if (base.includes('이대서울병원')) candidates.push('이대서울병원');
-      if (base.includes('부천병원')) candidates.push('부천병원');
-
-      return [...new Set(candidates.filter(Boolean))];
-    }
-
-    async function fetchWikipediaSummaryByTitle(title) {
-      const url = `https://ko.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
-      const res = await fetch(url, {
-        headers: {
-          'Accept': 'application/json'
-        }
-      });
-
-      if (!res.ok) {
-        throw new Error(`Wikipedia ${res.status}`);
-      }
-
-      const data = await res.json();
-
-      if (!data || data.type === 'https://mediawiki.org/wiki/HyperSwitch/errors/not_found') {
-        throw new Error('not found');
-      }
-
-      if (!data.extract || !String(data.extract).trim()) {
-        throw new Error('empty extract');
-      }
-
-      return {
-        title: data.title || title,
-        extract: data.extract || '',
-        url: data.content_urls?.desktop?.page || ''
-      };
-    }
-
     async function loadWikipediaSummary(item) {
-      const box = document.getElementById('wikiBox');
       if (!item) {
         resetWikiBox();
         return;
@@ -918,43 +870,68 @@
 
       showWikiLoading(item.name || '');
 
-      const candidates = getWikipediaCandidates(item.name || '');
+      try {
+        const data = await postToServer({
+          action: 'wiki',
+          name: item.name || ''
+        });
 
-      for (const title of candidates) {
-        try {
-          const wiki = await fetchWikipediaSummaryByTitle(title);
-          item.wiki_title = wiki.title || '';
-          item.wiki_summary = wiki.extract || '';
-          item.wiki_url = wiki.url || '';
+        if (!data.success || !data.wiki) {
+          item.wiki_title = '';
+          item.wiki_summary_ko = '';
+          item.wiki_summary_en = '';
+          item.wiki_url = '';
+          item.wiki_lang = '';
+          item.wiki_translated = false;
           item._wikiLoaded = true;
           renderWikiBox(item);
           return;
-        } catch (err) {}
-      }
+        }
 
-      item.wiki_title = '';
-      item.wiki_summary = '';
-      item.wiki_url = '';
-      item._wikiLoaded = true;
-      renderWikiBox(item);
+        item.wiki_title = data.wiki.title || '';
+        item.wiki_summary_ko = data.wiki.summary_ko || '';
+        item.wiki_summary_en = data.wiki.summary_en || '';
+        item.wiki_url = data.wiki.url || '';
+        item.wiki_lang = data.wiki.lang || '';
+        item.wiki_translated = Boolean(data.wiki.translated);
+        item._wikiLoaded = true;
+
+        renderWikiBox(item);
+
+      } catch (err) {
+        item.wiki_title = '';
+        item.wiki_summary_ko = '';
+        item.wiki_summary_en = '';
+        item.wiki_url = '';
+        item.wiki_lang = '';
+        item.wiki_translated = false;
+        item._wikiLoaded = true;
+        renderWikiBox(item);
+      }
     }
 
     function renderWikiBox(item) {
       const box = document.getElementById('wikiBox');
 
-      if (!item.wiki_summary) {
+      if (!item.wiki_summary_ko) {
         box.innerHTML = `
           <div class="section-title">위키백과</div>
           <div class="wiki-line"><b>${escapeHtml(item.name || '')}</b></div>
-          <div class="wiki-line">한국어 위키백과 요약 정보를 찾지 못했습니다.</div>
+          <div class="wiki-line">한국어/영어 위키백과 요약 정보를 찾지 못했습니다.</div>
         `;
         return;
       }
 
+      const sourceText =
+        item.wiki_lang === 'en' && item.wiki_translated
+          ? '영어 위키백과 원문을 한국어로 번역한 요약입니다.'
+          : '한국어 위키백과 요약입니다.';
+
       box.innerHTML = `
         <div class="section-title">위키백과</div>
         <div class="wiki-line"><b>${escapeHtml(item.wiki_title || item.name || '')}</b></div>
-        <div class="wiki-summary">${escapeHtml(item.wiki_summary)}</div>
+        <div class="wiki-summary">${escapeHtml(item.wiki_summary_ko)}</div>
+        <div class="wiki-source">${escapeHtml(sourceText)}</div>
         ${item.wiki_url ? `<a class="wiki-link" href="${escapeHtml(item.wiki_url)}" target="_blank" rel="noopener noreferrer">위키백과에서 열기</a>` : ''}
       `;
     }
