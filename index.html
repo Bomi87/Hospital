@@ -2,7 +2,10 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+  />
   <title>Hospital Search Map</title>
 
   <link
@@ -12,9 +15,12 @@
   />
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
       width: 100%;
@@ -26,6 +32,7 @@
       font-family: Arial, sans-serif;
       background: #f4f6f9;
       color: #222;
+      position: relative;
     }
 
     .wrap {
@@ -41,7 +48,7 @@
       max-width: 100%;
       background: #fff;
       border-radius: 14px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
       padding: 20px;
       margin-bottom: 18px;
       overflow-x: hidden;
@@ -73,13 +80,11 @@
       gap: 6px;
       min-width: 180px;
       flex: 1;
-      min-width: 0;
     }
 
     .field.small {
       max-width: 180px;
       flex: 0 0 180px;
-      min-width: 0;
     }
 
     label {
@@ -91,18 +96,18 @@
     input {
       width: 100%;
       max-width: 100%;
+      min-width: 0;
       height: 42px;
       padding: 10px 12px;
       border: 1px solid #d0d7de;
       border-radius: 10px;
       font-size: 14px;
       outline: none;
-      min-width: 0;
     }
 
     input:focus {
       border-color: #1f5eff;
-      box-shadow: 0 0 0 3px rgba(31,94,255,0.12);
+      box-shadow: 0 0 0 3px rgba(31, 94, 255, 0.12);
     }
 
     button {
@@ -117,8 +122,13 @@
       cursor: pointer;
     }
 
-    button:hover { opacity: 0.93; }
-    button.secondary { background: #6b7280; }
+    button:hover {
+      opacity: 0.93;
+    }
+
+    button.secondary {
+      background: #6b7280;
+    }
 
     .btn-area {
       display: flex;
@@ -134,14 +144,21 @@
       line-height: 1.5;
     }
 
-    .msg.error { color: #c62828; }
-    .msg.success { color: #177245; }
+    .msg.error {
+      color: #c62828;
+    }
 
-    .hidden { display: none; }
+    .msg.success {
+      color: #177245;
+    }
+
+    .hidden {
+      display: none;
+    }
 
     .info-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0,1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
       margin-top: 14px;
     }
@@ -190,8 +207,8 @@
 
     .table-wrap {
       overflow-y: auto;
-      scroll-behavior: smooth;
       overflow-x: hidden;
+      scroll-behavior: smooth;
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       max-height: 720px;
@@ -206,7 +223,8 @@
       table-layout: fixed;
     }
 
-    th, td {
+    th,
+    td {
       border-bottom: 1px solid #e5e7eb;
       padding: 10px 10px;
       text-align: left;
@@ -225,16 +243,24 @@
     }
 
     #resultTable th:nth-child(1),
-    #resultTable td:nth-child(1) { width: 40%; }
+    #resultTable td:nth-child(1) {
+      width: 40%;
+    }
 
     #resultTable th:nth-child(2),
-    #resultTable td:nth-child(2) { width: 16%; }
+    #resultTable td:nth-child(2) {
+      width: 16%;
+    }
 
     #resultTable th:nth-child(3),
-    #resultTable td:nth-child(3) { width: 12%; }
+    #resultTable td:nth-child(3) {
+      width: 12%;
+    }
 
     #resultTable th:nth-child(4),
-    #resultTable td:nth-child(4) { width: 15%; }
+    #resultTable td:nth-child(4) {
+      width: 15%;
+    }
 
     #resultTable th:nth-child(5),
     #resultTable td:nth-child(5) {
@@ -248,19 +274,27 @@
       text-align: center;
     }
 
-    tr.clickable-row { cursor: pointer; }
-    tr.clickable-row:hover td { background: #f8fbff; }
-    tr.active-row td { background: #eef4ff !important; }
+    tr.clickable-row {
+      cursor: pointer;
+    }
+
+    tr.clickable-row:hover td {
+      background: #f8fbff;
+    }
+
+    tr.active-row td {
+      background: #eef4ff !important;
+    }
 
     #map {
       width: 100%;
       max-width: 100%;
+      min-width: 0;
       height: 690px;
       border-radius: 12px;
       border: 1px solid #e5e7eb;
       overflow: hidden;
       background: #fff;
-      min-width: 0;
     }
 
     .details-box {
@@ -268,7 +302,6 @@
       border-radius: 12px;
       background: #fff;
       padding: 14px;
-      margin-top: 14px;
       width: 100%;
       max-width: 100%;
     }
@@ -303,6 +336,12 @@
       gap: 12px;
       flex-wrap: wrap;
       width: 100%;
+      max-width: 100%;
+    }
+
+    .leaflet-container {
+      width: 100%;
+      max-width: 100%;
     }
 
     .leaflet-popup-content {
@@ -317,12 +356,17 @@
       height: 20px;
       border-radius: 50%;
       border: 2px solid #fff;
-      box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
       transition: all 0.15s ease;
     }
 
-    .marker-default { background: #2563eb; }
-    .marker-top { background: #a3e635; }
+    .marker-default {
+      background: #2563eb;
+    }
+
+    .marker-top {
+      background: #a3e635;
+    }
 
     .marker-selected {
       width: 28px;
@@ -330,14 +374,14 @@
       border-radius: 50%;
       background: #ef4444;
       border: 3px solid #fff;
-      box-shadow: 0 0 0 2px rgba(239,68,68,0.35);
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.35);
     }
 
     .airport-marker {
       font-size: 22px;
       line-height: 22px;
       text-align: center;
-      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
     }
 
     .meta-chip {
@@ -386,7 +430,10 @@
     }
 
     @media (max-width: 768px) {
-      html, body {
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
         overflow-x: hidden;
       }
 
@@ -394,13 +441,15 @@
         width: 100%;
         max-width: 100%;
         padding: 10px 8px 18px;
+        overflow-x: hidden;
       }
 
       .card {
         width: 100%;
         max-width: 100%;
-        padding: 14px;
+        padding: 14px 12px;
         border-radius: 12px;
+        overflow-x: hidden;
       }
 
       h1 {
@@ -412,9 +461,48 @@
         margin-bottom: 12px;
       }
 
-      .field, .field.small {
+      .top-bar {
+        display: block;
+        width: 100%;
+      }
+
+      .top-bar > div {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .top-bar .secondary {
+        display: inline-flex;
+        width: auto;
+        min-width: 90px;
+        margin-top: 8px;
+      }
+
+      .search-row-mobile {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 10px;
+        align-items: end;
+        width: 100%;
+      }
+
+      .field,
+      .field.small,
+      .search-row-mobile .field,
+      .search-row-mobile .field.small,
+      input,
+      .content-grid,
+      .left-col,
+      .right-col,
+      .table-wrap,
+      #map,
+      .details-box {
         min-width: 0;
         max-width: 100%;
+      }
+
+      .field,
+      .field.small {
         flex: 1 1 100%;
       }
 
@@ -424,34 +512,14 @@
         font-size: 14px;
       }
 
-      .top-bar .secondary {
-        width: auto;
-        min-width: 100px;
-        padding: 0 16px;
-      }
-
-      .search-row-mobile {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        align-items: end;
-        width: 100%;
-      }
-
-      .search-row-mobile .field,
-      .search-row-mobile .field.small {
-        min-width: 0;
-        max-width: 100%;
-        width: 100%;
-        flex: none;
-      }
-
       .btn-area {
+        width: 100%;
         margin-top: 10px;
       }
 
       .btn-area button {
         width: 120px;
+        max-width: 100%;
         margin: 0;
       }
 
@@ -464,22 +532,6 @@
         flex-direction: column;
         gap: 12px;
         width: 100%;
-        max-width: 100%;
-      }
-
-      .left-col,
-      .right-col {
-        width: 100%;
-        max-width: 100%;
-        min-width: 0;
-        flex: 0 0 100%;
-      }
-
-      .left-col {
-        order: 2;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
       }
 
       .right-col {
@@ -489,21 +541,22 @@
         gap: 12px;
       }
 
-      #map,
-      .details-box,
-      .table-wrap {
+      .left-col {
+        order: 2;
         width: 100%;
-        max-width: 100%;
+        flex: 0 0 100%;
       }
 
       #map {
+        width: 100%;
         height: 420px;
         border-radius: 12px;
       }
 
       .details-box {
-        padding: 12px;
+        width: 100%;
         margin-top: 0;
+        padding: 12px;
       }
 
       .section-title {
@@ -518,6 +571,7 @@
       }
 
       .table-wrap {
+        width: 100%;
         max-height: none;
         overflow-y: visible;
         overflow-x: hidden;
@@ -541,7 +595,7 @@
         border-bottom: 1px solid #e5e7eb;
         padding: 9px 8px 7px;
         background: #fff;
-        min-height: 78px;
+        min-height: 92px;
       }
 
       #resultTable td {
@@ -566,10 +620,7 @@
       }
 
       #resultTable td:nth-child(3),
-      #resultTable td:nth-child(4) {
-        display: none;
-      }
-
+      #resultTable td:nth-child(4),
       #resultTable td:nth-child(5),
       #resultTable td:nth-child(6) {
         display: inline-block;
@@ -606,7 +657,6 @@
 </head>
 <body>
   <div class="wrap">
-
     <div class="card" id="loginCard">
       <h1>Hospital Search</h1>
       <div class="sub">비밀번호 입력 후 공항 주변 병원을 조회합니다.</div>
@@ -720,7 +770,9 @@
 
           <div class="details-box" id="detailsBox">
             <div class="section-title">Hospital Details</div>
-            <div class="details-line">병원을 클릭하면 전체주소 / 전화번호 / 영업시간 / 홈페이지 / Google Maps 링크가 표시됩니다.</div>
+            <div class="details-line">
+              병원을 클릭하면 전체주소 / 전화번호 / 영업시간 / 홈페이지 / Google Maps 링크가 표시됩니다.
+            </div>
           </div>
         </div>
       </div>
@@ -847,7 +899,6 @@
 
         localStorage.setItem('hospital_password', password);
         showSearchView();
-
       } catch (err) {
         msg.className = 'msg error';
         msg.textContent = '로그인 중 오류가 발생했습니다.';
@@ -924,7 +975,6 @@
         const cachedText = data.cached ? ' / cache' : '';
         msg.className = 'msg success';
         msg.textContent = `${count}건 조회 완료${cachedText}`;
-
       } catch (err) {
         msg.className = 'msg error';
         msg.textContent = '조회 중 오류가 발생했습니다.';
@@ -1000,7 +1050,6 @@
         item.full_address = data.details.full_address || item.address || '';
         item.phone = data.details.phone || '';
         item.opening_hours = data.details.opening_hours || '';
-        item.open_now = typeof data.details.open_now === 'boolean' ? data.details.open_now : null;
         item.google_maps_url = data.details.google_maps_url || '';
         item.website = data.details.website || '';
         item._detailsLoaded = true;
@@ -1014,7 +1063,6 @@
             marker.openPopup();
           }
         }
-
       } catch (err) {
         box.innerHTML = `
           <div class="section-title">${escapeHtml(item.name || 'Hospital Details')}</div>
@@ -1032,12 +1080,6 @@
       }
     }
 
-    function getOpenNowText(value) {
-      if (value === true) return '영업중';
-      if (value === false) return '영업 종료';
-      return '정보 없음';
-    }
-
     function renderDetailsBox(item) {
       const box = document.getElementById('detailsBox');
       box.innerHTML = `
@@ -1045,7 +1087,6 @@
         <div class="details-line"><b>전체 주소:</b> ${escapeHtml(item.full_address || item.address || '정보 없음')}</div>
         <div class="details-line"><b>전화번호:</b> ${escapeHtml(item.phone || '정보 없음')}</div>
         <div class="details-line"><b>영업시간:</b> ${escapeHtml(item.opening_hours || '정보 없음')}</div>
-        <div class="details-line"><b>현재 상태:</b> ${escapeHtml(getOpenNowText(item.open_now))}</div>
         <div class="details-line">
           <b>홈페이지:</b>
           ${item.website
@@ -1065,7 +1106,9 @@
       const box = document.getElementById('detailsBox');
       box.innerHTML = `
         <div class="section-title">Hospital Details</div>
-        <div class="details-line">병원을 클릭하면 전체주소 / 전화번호 / 영업시간 / 홈페이지 / Google Maps 링크가 표시됩니다.</div>
+        <div class="details-line">
+          병원을 클릭하면 전체주소 / 전화번호 / 영업시간 / 홈페이지 / Google Maps 링크가 표시됩니다.
+        </div>
       `;
     }
 
@@ -1124,7 +1167,11 @@
 
       const wrapRect = wrap.getBoundingClientRect();
       const rowRect = row.getBoundingClientRect();
-      const targetTop = wrap.scrollTop + (rowRect.top - wrapRect.top) - (wrap.clientHeight / 2) + (row.clientHeight / 2);
+      const targetTop =
+        wrap.scrollTop +
+        (rowRect.top - wrapRect.top) -
+        (wrap.clientHeight / 2) +
+        (row.clientHeight / 2);
 
       wrap.scrollTo({
         top: Math.max(0, targetTop),
@@ -1144,7 +1191,6 @@
           <div><b>Ratings Total:</b> ${escapeHtml(String(item.ratings_total || ''))}</div>
           <div style="margin-top:4px;"><b>Address:</b> ${escapeHtml(item.full_address || item.address || '')}</div>
           <div><b>Phone:</b> ${escapeHtml(item.phone || '정보 없음')}</div>
-          <div><b>Open Now:</b> ${escapeHtml(getOpenNowText(item.open_now))}</div>
           <div><b>Hours:</b> ${escapeHtml(item.opening_hours || '정보 없음')}</div>
           <div>
             <b>Website:</b>
@@ -1245,7 +1291,10 @@
       const wrapRect = tableWrap.getBoundingClientRect();
       const rowRect = row.getBoundingClientRect();
       const currentScroll = tableWrap.scrollTop;
-      const offset = (rowRect.top - wrapRect.top) - (tableWrap.clientHeight / 2) + (rowRect.height / 2);
+      const offset =
+        (rowRect.top - wrapRect.top) -
+        (tableWrap.clientHeight / 2) +
+        (rowRect.height / 2);
 
       tableWrap.scrollTo({
         top: Math.max(0, currentScroll + offset),
@@ -1287,7 +1336,8 @@
       initMap();
 
       setTimeout(() => {
-        map.invalidateSize();
+        window.scrollTo(0, 0);
+        if (map) map.invalidateSize();
       }, 300);
 
       document.getElementById('icao').focus();
@@ -1337,8 +1387,15 @@
 
     window.addEventListener('load', () => {
       const savedPassword = localStorage.getItem('hospital_password');
-      if (savedPassword) showSearchView();
-      else showLoginView();
+      if (savedPassword) {
+        showSearchView();
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          if (map) map.invalidateSize();
+        }, 350);
+      } else {
+        showLoginView();
+      }
     });
 
     window.addEventListener('resize', () => {
