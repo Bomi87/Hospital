@@ -395,7 +395,6 @@
             type="password"
             id="password"
             placeholder="Enter password"
-            onkeydown="if(event.key==='Enter') login();"
           />
         </div>
       </div>
@@ -429,7 +428,6 @@
             placeholder="ex) RKSS"
             maxlength="4"
             oninput="this.value = this.value.toUpperCase();"
-            onkeydown="if(event.key==='Enter') searchHospitals();"
           />
         </div>
 
@@ -438,11 +436,10 @@
           <input
             type="number"
             id="radius"
-            placeholder="20"
-            value="20"
+            placeholder="10"
+            value="10"
             min="1"
             max="50"
-            onkeydown="if(event.key==='Enter') searchHospitals();"
           />
         </div>
       </div>
@@ -518,7 +515,7 @@
   ></script>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzlf5EUUTioZoP8cYGtDVk_kAiOAGhk7HccSFq8k1F8yXrVealL_Q6cSqbglAra0247/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4pwy-encrp7UT3dtB6zYnRE5oMYqRF7OqOY0x8dPwuRDGXRmgK_ElVBLfnjS1CYk/exec';
 
     let map;
     let airportMarker = null;
@@ -641,7 +638,7 @@
       localStorage.removeItem('hospital_password');
       document.getElementById('password').value = '';
       document.getElementById('icao').value = '';
-      document.getElementById('radius').value = '20';
+      document.getElementById('radius').value = '10';
       document.getElementById('searchMsg').textContent = '';
       document.getElementById('loginMsg').textContent = '';
       document.getElementById('resultInfo').style.display = 'none';
@@ -783,8 +780,7 @@
               </div>
             `);
           }
-
-            return;
+          return;
         }
 
         item.full_address = data.details.full_address || item.address || '';
@@ -821,44 +817,6 @@
             </div>
           `);
         }
-
-      }
-    }
-
-      if (item._capabilityLoaded) {
-        renderCapabilityBox(item);
-        return;
-      }
-
-      showCapabilityLoading(item.name || '');
-
-      try {
-        const password = localStorage.getItem('hospital_password') || '';
-
-        const data = await postToServer({
-          action: 'capability',
-          password,
-          place_id: item.place_id || '',
-          name: item.name || '',
-          website: item.website || '',
-          address: item.full_address || item.address || ''
-        });
-
-        if (!data.success || !data.capability) {
-          item.capability = null;
-          item._capabilityLoaded = true;
-          renderCapabilityBox(item);
-          return;
-        }
-
-        item.capability = data.capability;
-        item._capabilityLoaded = true;
-        renderCapabilityBox(item);
-
-      } catch (err) {
-        item.capability = null;
-        item._capabilityLoaded = true;
-        renderCapabilityBox(item);
       }
     }
 
@@ -907,21 +865,6 @@
         <div class="cap-line"><b>${escapeHtml(name || '')}</b></div>
         <div class="cap-line">불러오는 중...</div>
       `;
-    }
-
-    function isCapabilityValueVisible(value) {
-      const text = String(value || '').trim();
-      if (!text) return false;
-
-      const hiddenValues = new Set([
-        '확인 필요',
-        '미확인',
-        '정보 없음',
-        'Low',
-        '병원명/웹사이트 URL 기반 추정'
-      ]);
-
-      return !hiddenValues.has(text);
     }
 
     function renderCapabilityBox(item) {
@@ -997,7 +940,6 @@
       });
     }
 
-
     function scrollToHospitalRow(index) {
       const tbody = document.getElementById('resultBody');
       const rows = tbody.querySelectorAll('tr.clickable-row');
@@ -1044,7 +986,7 @@
 
       const centerLat = Number(data.lat);
       const centerLng = Number(data.lng);
-      const radiusKm = Number(data.radius || 20);
+      const radiusKm = Number(data.radius || 10);
       const results = data.results || [];
       const topIndexes = getTopHospitalIndexes(results);
 
@@ -1177,13 +1119,46 @@
     }
 
     function escapeHtml(value) {
-      return String(value)
+      return String(value ?? '')
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#039;');
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const passwordEl = document.getElementById('password');
+      const icaoEl = document.getElementById('icao');
+      const radiusEl = document.getElementById('radius');
+
+      if (passwordEl) {
+        passwordEl.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            login();
+          }
+        });
+      }
+
+      if (icaoEl) {
+        icaoEl.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            searchHospitals();
+          }
+        });
+      }
+
+      if (radiusEl) {
+        radiusEl.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            searchHospitals();
+          }
+        });
+      }
+    });
 
     window.addEventListener('load', () => {
       const savedPassword = localStorage.getItem('hospital_password');
