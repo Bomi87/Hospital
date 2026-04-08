@@ -898,22 +898,22 @@
       `;
     }
 
-    function resetCapabilityBox() {
-      const box = document.getElementById('capabilityBox');
-      box.innerHTML = `
-        <div class="section-title">Medical Capability</div>
-        <div class="cap-line">병원을 클릭하면 응급실 여부 / 24시간 여부 / 전문분야 / 신뢰도를 표시합니다.</div>
-      `;
-    }
+function resetCapabilityBox() {
+  const box = document.getElementById('capabilityBox');
+  box.innerHTML = `
+    <div class="section-title">Medical Capability</div>
+    <div class="cap-line">병원을 클릭하면 홈페이지 / Google Maps 링크가 표시됩니다.</div>
+  `;
+}
 
-    function showCapabilityLoading(name) {
-      const box = document.getElementById('capabilityBox');
-      box.innerHTML = `
-        <div class="section-title">Medical Capability</div>
-        <div class="cap-line"><b>${escapeHtml(name || '')}</b></div>
-        <div class="cap-line">분석 중...</div>
-      `;
-    }
+function showCapabilityLoading(name) {
+  const box = document.getElementById('capabilityBox');
+  box.innerHTML = `
+    <div class="section-title">Medical Capability</div>
+    <div class="cap-line"><b>${escapeHtml(name || '')}</b></div>
+    <div class="cap-line">불러오는 중...</div>
+  `;
+}
 
     function isCapabilityValueVisible(value) {
       const text = String(value || '').trim();
@@ -930,60 +930,29 @@
       return !hiddenValues.has(text);
     }
 
-    function renderCapabilityBox(item) {
-      const box = document.getElementById('capabilityBox');
-      const cap = item.capability;
+function renderCapabilityBox(item) {
+  const box = document.getElementById('capabilityBox');
+  const cap = item.capability;
 
-      if (!cap) {
-        box.innerHTML = `
-          <div class="section-title">Medical Capability</div>
-          <div class="cap-line"><b>${escapeHtml(item.name || '')}</b></div>
-          <div class="cap-line">응급실 여부 / 전문분야를 확인하지 못했습니다.</div>
-          <div class="cap-line">
-            <b>Google Maps:</b>
-            ${item.google_maps_url
-              ? `<a class="cap-link" href="${escapeHtml(item.google_maps_url)}" target="_blank" rel="noopener noreferrer">구글맵에서 열기</a>`
-              : '정보 없음'}
-          </div>
-        `;
-        return;
-      }
+  const website = (cap && cap.website) ? cap.website : (item.website || '');
 
-      const lines = [
-        `<div class="section-title">Medical Capability</div>`,
-        `<div class="cap-line"><b>${escapeHtml(item.name || '')}</b></div>`
-      ];
-
-      if (isCapabilityValueVisible(cap.emergency_room)) {
-        lines.push(`<div class="cap-line"><b>응급실:</b> ${escapeHtml(cap.emergency_room)}</div>`);
-      }
-
-      if (isCapabilityValueVisible(cap.emergency_24h)) {
-        lines.push(`<div class="cap-line"><b>24시간 응급실:</b> ${escapeHtml(cap.emergency_24h)}</div>`);
-      }
-
-      if (isCapabilityValueVisible(cap.emergency_level)) {
-        lines.push(`<div class="cap-line"><b>응급등급:</b> ${escapeHtml(cap.emergency_level)}</div>`);
-      }
-
-      if (cap.website) {
-        lines.push(`
-          <div class="cap-line">
-            <b>홈페이지:</b>
-            <a class="cap-link" href="${escapeHtml(cap.website)}" target="_blank" rel="noopener noreferrer">병원 홈페이지 열기</a>
-          </div>
-        `);
-      }
-
-      lines.push(`
-        <div class="cap-line">
-          <b>Google Maps:</b>
-          ${item.google_maps_url
-            ? `<a class="cap-link" href="${escapeHtml(item.google_maps_url)}" target="_blank" rel="noopener noreferrer">구글맵에서 열기</a>`
-            : '정보 없음'}
-        </div>
-      `);
-
+  box.innerHTML = `
+    <div class="section-title">Medical Capability</div>
+    <div class="cap-line"><b>${escapeHtml(item.name || '')}</b></div>
+    <div class="cap-line">
+      <b>홈페이지:</b>
+      ${website
+        ? `<a class="cap-link" href="${escapeHtml(website)}" target="_blank" rel="noopener noreferrer">병원 홈페이지 열기</a>`
+        : '정보 없음'}
+    </div>
+    <div class="cap-line">
+      <b>Google Maps:</b>
+      ${item.google_maps_url
+        ? `<a class="cap-link" href="${escapeHtml(item.google_maps_url)}" target="_blank" rel="noopener noreferrer">구글맵에서 열기</a>`
+        : '정보 없음'}
+    </div>
+  `;
+}
       box.innerHTML = lines.join('');
     }
 
