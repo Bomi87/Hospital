@@ -505,7 +505,7 @@
 
           <div class="capability-box" id="capabilityBox">
             <div class="section-title">Medical Capability</div>
-            <div class="cap-line">병원을 클릭하면 응급실 여부 / 24시간 여부 / 전문분야 / 신뢰도를 표시합니다.</div>
+            <div class="cap-line">병원을 클릭하면 홈페이지 / Google Maps 링크가 표시됩니다.</div>
           </div>
         </div>
       </div>
@@ -729,7 +729,7 @@
 
       if (item._detailsLoaded) {
         renderDetailsBox(item);
-        await loadCapability(item);
+        renderCapabilityBox(item);
 
         if (marker && openPopupAfterLoad) {
           marker.setPopupContent(buildPopupHtml(item, isTop));
@@ -773,6 +773,7 @@
             <div class="section-title">${escapeHtml(item.name || 'Hospital Details')}</div>
             <div class="details-line">상세정보 조회 실패</div>
           `;
+          renderCapabilityBox(item);
 
           if (marker) {
             marker.setPopupContent(`
@@ -783,8 +784,7 @@
             `);
           }
 
-          await loadCapability(item);
-          return;
+            return;
         }
 
         item.full_address = data.details.full_address || item.address || '';
@@ -796,7 +796,7 @@
         item._detailsLoaded = true;
 
         renderDetailsBox(item);
-        await loadCapability(item);
+        renderCapabilityBox(item);
 
         if (marker) {
           marker.setPopupContent(buildPopupHtml(item, isTop));
@@ -811,6 +811,7 @@
           <div class="section-title">${escapeHtml(item.name || 'Hospital Details')}</div>
           <div class="details-line">상세정보 조회 중 오류 발생</div>
         `;
+        renderCapabilityBox(item);
 
         if (marker) {
           marker.setPopupContent(`
@@ -821,15 +822,8 @@
           `);
         }
 
-        await loadCapability(item);
       }
     }
-
-    async function loadCapability(item) {
-      if (!item) {
-        resetCapabilityBox();
-        return;
-      }
 
       if (item._capabilityLoaded) {
         renderCapabilityBox(item);
@@ -898,22 +892,22 @@
       `;
     }
 
-function resetCapabilityBox() {
-  const box = document.getElementById('capabilityBox');
-  box.innerHTML = `
-    <div class="section-title">Medical Capability</div>
-    <div class="cap-line">병원을 클릭하면 홈페이지 / Google Maps 링크가 표시됩니다.</div>
-  `;
-}
+    function resetCapabilityBox() {
+      const box = document.getElementById('capabilityBox');
+      box.innerHTML = `
+        <div class="section-title">Medical Capability</div>
+        <div class="cap-line">병원을 클릭하면 홈페이지 / Google Maps 링크가 표시됩니다.</div>
+      `;
+    }
 
-function showCapabilityLoading(name) {
-  const box = document.getElementById('capabilityBox');
-  box.innerHTML = `
-    <div class="section-title">Medical Capability</div>
-    <div class="cap-line"><b>${escapeHtml(name || '')}</b></div>
-    <div class="cap-line">불러오는 중...</div>
-  `;
-}
+    function showCapabilityLoading(name) {
+      const box = document.getElementById('capabilityBox');
+      box.innerHTML = `
+        <div class="section-title">Medical Capability</div>
+        <div class="cap-line"><b>${escapeHtml(name || '')}</b></div>
+        <div class="cap-line">불러오는 중...</div>
+      `;
+    }
 
     function isCapabilityValueVisible(value) {
       const text = String(value || '').trim();
@@ -930,30 +924,26 @@ function showCapabilityLoading(name) {
       return !hiddenValues.has(text);
     }
 
-function renderCapabilityBox(item) {
-  const box = document.getElementById('capabilityBox');
-  const cap = item.capability;
+    function renderCapabilityBox(item) {
+      const box = document.getElementById('capabilityBox');
+      const website = item.website || '';
 
-  const website = (cap && cap.website) ? cap.website : (item.website || '');
-
-  box.innerHTML = `
-    <div class="section-title">Medical Capability</div>
-    <div class="cap-line"><b>${escapeHtml(item.name || '')}</b></div>
-    <div class="cap-line">
-      <b>홈페이지:</b>
-      ${website
-        ? `<a class="cap-link" href="${escapeHtml(website)}" target="_blank" rel="noopener noreferrer">병원 홈페이지 열기</a>`
-        : '정보 없음'}
-    </div>
-    <div class="cap-line">
-      <b>Google Maps:</b>
-      ${item.google_maps_url
-        ? `<a class="cap-link" href="${escapeHtml(item.google_maps_url)}" target="_blank" rel="noopener noreferrer">구글맵에서 열기</a>`
-        : '정보 없음'}
-    </div>
-  `;
-}
-      box.innerHTML = lines.join('');
+      box.innerHTML = `
+        <div class="section-title">Medical Capability</div>
+        <div class="cap-line"><b>${escapeHtml(item.name || '')}</b></div>
+        <div class="cap-line">
+          <b>홈페이지:</b>
+          ${website
+            ? `<a class="cap-link" href="${escapeHtml(website)}" target="_blank" rel="noopener noreferrer">병원 홈페이지 열기</a>`
+            : '정보 없음'}
+        </div>
+        <div class="cap-line">
+          <b>Google Maps:</b>
+          ${item.google_maps_url
+            ? `<a class="cap-link" href="${escapeHtml(item.google_maps_url)}" target="_blank" rel="noopener noreferrer">구글맵에서 열기</a>`
+            : '정보 없음'}
+        </div>
+      `;
     }
 
     function updateInfo(data) {
@@ -1007,15 +997,25 @@ function renderCapabilityBox(item) {
       });
     }
 
+
+    function scrollToHospitalRow(index) {
+      const tbody = document.getElementById('resultBody');
+      const rows = tbody.querySelectorAll('tr.clickable-row');
+      const row = rows[index];
+      const wrap = document.querySelector('.table-wrap');
+      if (!row || !wrap) return;
+
+      const wrapRect = wrap.getBoundingClientRect();
+      const rowRect = row.getBoundingClientRect();
+      const targetTop = wrap.scrollTop + (rowRect.top - wrapRect.top) - (wrap.clientHeight / 2) + (row.clientHeight / 2);
+
+      wrap.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: 'smooth'
+      });
+    }
+
     function buildPopupHtml(item, isTop) {
-      const erText = item.capability && item.capability.emergency_room
-        ? item.capability.emergency_room
-        : '확인 필요';
-
-      const er24Text = item.capability && item.capability.emergency_24h
-        ? item.capability.emergency_24h
-        : '확인 필요';
-
       return `
         <div>
           <div style="font-weight:700; margin-bottom:6px;">
@@ -1028,8 +1028,6 @@ function renderCapabilityBox(item) {
           <div style="margin-top:4px;"><b>Address:</b> ${escapeHtml(item.full_address || item.address || '')}</div>
           <div><b>Phone:</b> ${escapeHtml(item.phone || '정보 없음')}</div>
           <div><b>Open Now:</b> ${escapeHtml(getOpenNowText(item.open_now))}</div>
-          <div><b>ER:</b> ${escapeHtml(erText)}</div>
-          <div><b>24h ER:</b> ${escapeHtml(er24Text)}</div>
           <div><b>Hours:</b> ${escapeHtml(item.opening_hours || '정보 없음')}</div>
           <div>
             <b>Website:</b>
@@ -1088,6 +1086,7 @@ function renderCapabilityBox(item) {
 
     function setSelectedHospital(index) {
       selectedHospitalIndex = index;
+      scrollToHospitalRow(index);
       refreshHospitalMarkerIcons();
       highlightRow(index, true);
     }
