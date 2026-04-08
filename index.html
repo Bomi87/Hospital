@@ -852,7 +852,7 @@
 
       scored.sort((a, b) => b.score - a.score);
 
-      const topCount = Math.max(1, Math.ceil(results.length * 0.3));
+      const topCount = Math.max(1, Math.ceil(results.length * 0.2));
       return new Set(scored.slice(0, topCount).map(x => x.index));
     }
 
