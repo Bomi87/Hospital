@@ -22,7 +22,7 @@
     }
 
     .wrap {
-      max-width: 1400px;
+      max-width: 1450px;
       margin: 0 auto;
       padding: 20px 16px 36px;
     }
@@ -148,7 +148,7 @@
 
     .content-grid {
       display: grid;
-      grid-template-columns: 430px minmax(0, 1fr);
+      grid-template-columns: 560px minmax(0, 1fr);
       gap: 16px;
       margin-top: 16px;
     }
@@ -157,7 +157,7 @@
       overflow: auto;
       border: 1px solid #e5e7eb;
       border-radius: 12px;
-      max-height: 700px;
+      max-height: 720px;
       background: #fff;
     }
 
@@ -180,6 +180,7 @@
       position: sticky;
       top: 0;
       z-index: 1;
+      white-space: nowrap;
     }
 
     tr.clickable-row { cursor: pointer; }
@@ -188,7 +189,7 @@
 
     #map {
       width: 100%;
-      height: 700px;
+      height: 720px;
       border-radius: 12px;
       border: 1px solid #e5e7eb;
       overflow: hidden;
@@ -205,6 +206,32 @@
       white-space: nowrap;
     }
 
+    .pill.top {
+      background: #ecfccb;
+      color: #3f6212;
+    }
+
+    .details-box {
+      margin-top: 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .details-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .details-line {
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 6px;
+      word-break: break-word;
+    }
+
     .top-bar {
       display: flex;
       justify-content: space-between;
@@ -216,15 +243,35 @@
     .leaflet-popup-content {
       font-size: 13px;
       line-height: 1.5;
+      max-width: 280px;
+      word-break: break-word;
     }
 
-    @media (max-width: 1100px) {
+    .marker-icon-wrap {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+    }
+
+    .marker-default { background: #2563eb; }
+    .marker-top { background: #a3e635; }
+
+    .airport-marker {
+      font-size: 22px;
+      line-height: 22px;
+      text-align: center;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+    }
+
+    @media (max-width: 1180px) {
       .content-grid {
         grid-template-columns: 1fr;
       }
 
       #map {
-        height: 500px;
+        height: 520px;
       }
     }
 
@@ -252,7 +299,7 @@
       }
 
       #map {
-        height: 420px;
+        height: 430px;
       }
     }
   </style>
@@ -349,22 +396,31 @@
       </div>
 
       <div class="content-grid">
-        <div class="table-wrap">
-          <table id="resultTable">
-            <thead>
-              <tr>
-                <th>NAME</th>
-                <th>DISTANCE</th>
-                <th>RATING</th>
-                <th>UNIV</th>
-              </tr>
-            </thead>
-            <tbody id="resultBody">
-              <tr>
-                <td colspan="4">No data</td>
-              </tr>
-            </tbody>
-          </table>
+        <div>
+          <div class="table-wrap">
+            <table id="resultTable">
+              <thead>
+                <tr>
+                  <th>NAME</th>
+                  <th>DISTANCE</th>
+                  <th>RATING</th>
+                  <th>RATINGS_TOTAL</th>
+                  <th>UNIV</th>
+                  <th>TOP</th>
+                </tr>
+              </thead>
+              <tbody id="resultBody">
+                <tr>
+                  <td colspan="6">No data</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="details-box" id="detailsBox">
+            <div class="details-title">Hospital Details</div>
+            <div class="details-line">병원을 클릭하면 전체주소 / 전화번호 / 운영시간이 표시됩니다.</div>
+          </div>
         </div>
 
         <div id="map"></div>
@@ -378,13 +434,13 @@
   ></script>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTtZxCH3gpD1rvbfl-drK6c3cw5erWsBhrdkXML5JQlMv3zWDV-7d7F9XS0wns16ee/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxm2L6ziTu2LNX8S02P0wszRo2xFVjhlUCG4XG3ujxwxuHpHLJYWzMWflXZ9ywnuAc/exec';
 
     let map;
     let airportMarker = null;
     let radiusCircle = null;
     let hospitalMarkers = [];
-    let activeRowIndex = -1;
+    let currentResults = [];
 
     function initMap() {
       if (map) return;
@@ -394,6 +450,48 @@
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(map);
+    }
+
+    function getAirportIcon() {
+      return L.divIcon({
+        className: '',
+        html: `<div class="airport-marker">✈️</div>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13],
+        popupAnchor: [0, -10]
+      });
+    }
+
+    function getHospitalIcon(isTop) {
+      const cls = isTop ? 'marker-icon-wrap marker-top' : 'marker-icon-wrap marker-default';
+
+      return L.divIcon({
+        className: '',
+        html: `<div class="${cls}"></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+        popupAnchor: [0, -10]
+      });
+    }
+
+    function calculateHospitalScore(item) {
+      const rating = Number(item.rating || 0);
+      const ratingsTotal = Number(item.ratings_total || 0);
+      return rating * Math.log(ratingsTotal + 1);
+    }
+
+    function getTopHospitalIndexes(results) {
+      if (!results || results.length === 0) return new Set();
+
+      const scored = results.map((item, index) => ({
+        index,
+        score: calculateHospitalScore(item)
+      }));
+
+      scored.sort((a, b) => b.score - a.score);
+
+      const topCount = Math.max(1, Math.ceil(results.length * 0.3));
+      return new Set(scored.slice(0, topCount).map(x => x.index));
     }
 
     async function postToServer(payload) {
@@ -434,7 +532,7 @@
 
         const data = await postToServer({
           action: 'login',
-          password: password
+          password
         });
 
         if (!data.success) {
@@ -460,8 +558,10 @@
       document.getElementById('searchMsg').textContent = '';
       document.getElementById('loginMsg').textContent = '';
       document.getElementById('resultInfo').style.display = 'none';
+      currentResults = [];
       resetTable();
       clearMapObjects();
+      resetDetailsBox();
       showLoginView();
     }
 
@@ -489,6 +589,7 @@
 
       resetTable();
       clearMapObjects();
+      resetDetailsBox();
 
       try {
         msg.className = 'msg success';
@@ -496,9 +597,9 @@
 
         const data = await postToServer({
           action: 'search',
-          password: password,
-          icao: icao,
-          radius: radius
+          password,
+          icao,
+          radius
         });
 
         if (!data.success) {
@@ -507,11 +608,13 @@
           return;
         }
 
+        currentResults = data.results || [];
+
         updateInfo(data);
-        renderTable(data.results || []);
+        renderTable(currentResults);
         renderMap(data);
 
-        const count = (data.results || []).length;
+        const count = currentResults.length;
         const cachedText = data.cached ? ' / cache' : '';
         msg.className = 'msg success';
         msg.textContent = `${count}건 조회 완료${cachedText}`;
@@ -520,6 +623,80 @@
         msg.className = 'msg error';
         msg.textContent = '조회 중 오류가 발생했습니다.';
       }
+    }
+
+    async function loadHospitalDetails(index) {
+      const item = currentResults[index];
+      if (!item || !item.place_id) return;
+
+      const password = localStorage.getItem('hospital_password') || '';
+      const box = document.getElementById('detailsBox');
+
+      if (item._detailsLoaded) {
+        renderDetailsBox(item);
+        return;
+      }
+
+      box.innerHTML = `
+        <div class="details-title">${escapeHtml(item.name || 'Hospital Details')}</div>
+        <div class="details-line">상세정보 불러오는 중...</div>
+      `;
+
+      try {
+        const data = await postToServer({
+          action: 'details',
+          password,
+          place_id: item.place_id
+        });
+
+        if (!data.success) {
+          box.innerHTML = `
+            <div class="details-title">${escapeHtml(item.name || 'Hospital Details')}</div>
+            <div class="details-line">상세정보 조회 실패</div>
+          `;
+          return;
+        }
+
+        item.full_address = data.details.full_address || item.address || '';
+        item.phone = data.details.phone || '';
+        item.opening_hours = data.details.opening_hours || '';
+        item.google_maps_url = data.details.google_maps_url || '';
+        item.website = data.details.website || '';
+        item._detailsLoaded = true;
+
+        renderDetailsBox(item);
+
+        const marker = hospitalMarkers[index];
+        if (marker) {
+          marker.setPopupContent(buildPopupHtml(item, getTopHospitalIndexes(currentResults).has(index)));
+          marker.openPopup();
+        }
+
+      } catch (err) {
+        box.innerHTML = `
+          <div class="details-title">${escapeHtml(item.name || 'Hospital Details')}</div>
+          <div class="details-line">상세정보 조회 중 오류 발생</div>
+        `;
+      }
+    }
+
+    function renderDetailsBox(item) {
+      const box = document.getElementById('detailsBox');
+      box.innerHTML = `
+        <div class="details-title">${escapeHtml(item.name || 'Hospital Details')}</div>
+        <div class="details-line"><b>기본 주소:</b> ${escapeHtml(item.address || '')}</div>
+        <div class="details-line"><b>전체 주소:</b> ${escapeHtml(item.full_address || '정보 없음')}</div>
+        <div class="details-line"><b>전화번호:</b> ${escapeHtml(item.phone || '정보 없음')}</div>
+        <div class="details-line"><b>운영시간:</b> ${escapeHtml(item.opening_hours || '정보 없음')}</div>
+      `;
+    }
+
+    function resetDetailsBox() {
+      const box = document.getElementById('detailsBox');
+      box.innerHTML = `
+        <div class="details-title">Hospital Details</div>
+        <div class="details-line">병원을 클릭하면 전체주소 / 전화번호 / 운영시간이 표시됩니다.</div>
+      `;
     }
 
     function updateInfo(data) {
@@ -533,12 +710,13 @@
     function renderTable(results) {
       const tbody = document.getElementById('resultBody');
       tbody.innerHTML = '';
-      activeRowIndex = -1;
 
       if (!results || results.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4">No results</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6">No results</td></tr>';
         return;
       }
+
+      const topIndexes = getTopHospitalIndexes(results);
 
       results.forEach((item, index) => {
         const tr = document.createElement('tr');
@@ -548,6 +726,10 @@
           ? '<span class="pill">O</span>'
           : '';
 
+        const topBadge = topIndexes.has(index)
+          ? '<span class="pill top">TOP</span>'
+          : '';
+
         tr.innerHTML = `
           <td>
             <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(item.name || '')}</div>
@@ -555,15 +737,35 @@
           </td>
           <td>${escapeHtml(String(item.distance_km || ''))} km</td>
           <td>${escapeHtml(String(item.rating || ''))}</td>
+          <td>${escapeHtml(String(item.ratings_total || ''))}</td>
           <td>${univ}</td>
+          <td>${topBadge}</td>
         `;
 
-        tr.addEventListener('click', () => {
+        tr.addEventListener('click', async () => {
           focusHospital(index);
+          await loadHospitalDetails(index);
         });
 
         tbody.appendChild(tr);
       });
+    }
+
+    function buildPopupHtml(item, isTop) {
+      return `
+        <div>
+          <div style="font-weight:700; margin-bottom:6px;">
+            ${escapeHtml(item.name || '')}
+            ${isTop ? '<span style="display:inline-block;margin-left:6px;padding:2px 6px;border-radius:999px;background:#ecfccb;color:#3f6212;font-size:11px;font-weight:700;">TOP</span>' : ''}
+          </div>
+          <div><b>Distance:</b> ${escapeHtml(String(item.distance_km || ''))} km</div>
+          <div><b>Rating:</b> ${escapeHtml(String(item.rating || ''))}</div>
+          <div><b>Ratings Total:</b> ${escapeHtml(String(item.ratings_total || ''))}</div>
+          <div style="margin-top:4px;"><b>Address:</b> ${escapeHtml(item.full_address || item.address || '')}</div>
+          <div><b>Phone:</b> ${escapeHtml(item.phone || '정보 없음')}</div>
+          <div><b>Hours:</b> ${escapeHtml(item.opening_hours || '정보 없음')}</div>
+        </div>
+      `;
     }
 
     function renderMap(data) {
@@ -573,9 +775,11 @@
       const centerLng = Number(data.lng);
       const radiusKm = Number(data.radius || 20);
       const results = data.results || [];
+      const topIndexes = getTopHospitalIndexes(results);
 
-      airportMarker = L.marker([centerLat, centerLng]).addTo(map)
-        .bindPopup(`<b>${escapeHtml(data.icao || 'AIRPORT')}</b><br>Airport Center`);
+      airportMarker = L.marker([centerLat, centerLng], {
+        icon: getAirportIcon()
+      }).addTo(map).bindPopup(`<b>${escapeHtml(data.icao || 'AIRPORT')}</b><br>Airport Center`);
 
       radiusCircle = L.circle([centerLat, centerLng], {
         radius: radiusKm * 1000
@@ -588,19 +792,15 @@
         const lng = Number(item.lng);
         if (!isFinite(lat) || !isFinite(lng)) return;
 
-        const popupHtml = `
-          <div>
-            <div style="font-weight:700; margin-bottom:6px;">${escapeHtml(item.name || '')}</div>
-            <div><b>Distance:</b> ${escapeHtml(String(item.distance_km || ''))} km</div>
-            <div><b>Rating:</b> ${escapeHtml(String(item.rating || ''))}</div>
-            <div style="margin-top:4px;">${escapeHtml(item.address || '')}</div>
-          </div>
-        `;
+        const isTop = topIndexes.has(index);
 
-        const marker = L.marker([lat, lng]).addTo(map).bindPopup(popupHtml);
+        const marker = L.marker([lat, lng], {
+          icon: getHospitalIcon(isTop)
+        }).addTo(map).bindPopup(buildPopupHtml(item, isTop));
 
-        marker.on('click', () => {
+        marker.on('click', async () => {
           highlightRow(index);
+          await loadHospitalDetails(index);
         });
 
         hospitalMarkers.push(marker);
@@ -615,9 +815,9 @@
     }
 
     function focusHospital(index) {
-      if (!hospitalMarkers[index]) return;
       highlightRow(index);
 
+      if (!hospitalMarkers[index]) return;
       const marker = hospitalMarkers[index];
       const latlng = marker.getLatLng();
       map.setView(latlng, Math.max(map.getZoom(), 13), { animate: true });
@@ -627,13 +827,9 @@
     function highlightRow(index) {
       const rows = document.querySelectorAll('#resultBody tr');
       rows.forEach((row, i) => {
-        if (i === index) {
-          row.classList.add('active-row');
-        } else {
-          row.classList.remove('active-row');
-        }
+        if (i === index) row.classList.add('active-row');
+        else row.classList.remove('active-row');
       });
-      activeRowIndex = index;
     }
 
     function clearMapObjects() {
@@ -649,15 +845,13 @@
         radiusCircle = null;
       }
 
-      hospitalMarkers.forEach(marker => {
-        map.removeLayer(marker);
-      });
+      hospitalMarkers.forEach(marker => map.removeLayer(marker));
       hospitalMarkers = [];
     }
 
     function resetTable() {
       const tbody = document.getElementById('resultBody');
-      tbody.innerHTML = '<tr><td colspan="4">No data</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6">No data</td></tr>';
     }
 
     function showLoginView() {
@@ -688,11 +882,8 @@
 
     window.addEventListener('load', () => {
       const savedPassword = localStorage.getItem('hospital_password');
-      if (savedPassword) {
-        showSearchView();
-      } else {
-        showLoginView();
-      }
+      if (savedPassword) showSearchView();
+      else showLoginView();
     });
   </script>
 </body>
