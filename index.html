@@ -949,10 +949,6 @@
         return;
       }
 
-      const specialties = Array.isArray(cap.specialties) && cap.specialties.length
-        ? cap.specialties.join(', ')
-        : '';
-
       const lines = [
         `<div class="section-title">Medical Capability</div>`,
         `<div class="cap-line"><b>${escapeHtml(item.name || '')}</b></div>`
@@ -968,18 +964,6 @@
 
       if (isCapabilityValueVisible(cap.emergency_level)) {
         lines.push(`<div class="cap-line"><b>응급등급:</b> ${escapeHtml(cap.emergency_level)}</div>`);
-      }
-
-      if (isCapabilityValueVisible(specialties)) {
-        lines.push(`<div class="cap-line"><b>전문분야:</b> ${escapeHtml(specialties)}</div>`);
-      }
-
-      if (isCapabilityValueVisible(cap.confidence)) {
-        lines.push(`<div class="cap-line"><b>신뢰도:</b> ${escapeHtml(cap.confidence)}</div>`);
-      }
-
-      if (isCapabilityValueVisible(cap.source_note)) {
-        lines.push(`<div class="cap-line"><b>출처:</b> ${escapeHtml(cap.source_note)}</div>`);
       }
 
       if (cap.website) {
