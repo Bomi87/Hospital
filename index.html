@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Hospital Search Map</title>
 
   <link
@@ -14,25 +14,37 @@
   <style>
     * { box-sizing: border-box; }
 
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
       font-family: Arial, sans-serif;
       background: #f4f6f9;
       color: #222;
     }
 
     .wrap {
+      width: 100%;
       max-width: 1500px;
       margin: 0 auto;
       padding: 20px 16px 36px;
+      overflow-x: hidden;
     }
 
     .card {
+      width: 100%;
+      max-width: 100%;
       background: #fff;
       border-radius: 14px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.08);
       padding: 20px;
       margin-bottom: 18px;
+      overflow-x: hidden;
     }
 
     h1 {
@@ -51,6 +63,8 @@
       flex-wrap: wrap;
       gap: 12px;
       align-items: end;
+      width: 100%;
+      max-width: 100%;
     }
 
     .field {
@@ -59,11 +73,13 @@
       gap: 6px;
       min-width: 180px;
       flex: 1;
+      min-width: 0;
     }
 
     .field.small {
       max-width: 180px;
       flex: 0 0 180px;
+      min-width: 0;
     }
 
     label {
@@ -74,12 +90,14 @@
 
     input {
       width: 100%;
+      max-width: 100%;
       height: 42px;
       padding: 10px 12px;
       border: 1px solid #d0d7de;
       border-radius: 10px;
       font-size: 14px;
       outline: none;
+      min-width: 0;
     }
 
     input:focus {
@@ -107,6 +125,7 @@
       gap: 10px;
       flex-wrap: wrap;
       margin-top: 8px;
+      width: 100%;
     }
 
     .msg {
@@ -152,11 +171,15 @@
       gap: 16px;
       margin-top: 16px;
       align-items: start;
+      width: 100%;
+      max-width: 100%;
     }
 
     .left-col,
     .right-col {
       min-width: 0;
+      width: 100%;
+      max-width: 100%;
     }
 
     .right-col {
@@ -173,6 +196,8 @@
       border-radius: 12px;
       max-height: 720px;
       background: #fff;
+      width: 100%;
+      max-width: 100%;
     }
 
     table {
@@ -229,39 +254,23 @@
 
     #map {
       width: 100%;
+      max-width: 100%;
       height: 690px;
       border-radius: 12px;
       border: 1px solid #e5e7eb;
       overflow: hidden;
       background: #fff;
+      min-width: 0;
     }
 
-    .pill {
-      display: inline-block;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 700;
-      background: #e8f7ee;
-      color: #177245;
-      white-space: nowrap;
-    }
-
-    .pill.top {
-      background: #ecfccb;
-      color: #3f6212;
-    }
-
-    .details-box,
-    .capability-box {
+    .details-box {
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       background: #fff;
       padding: 14px;
-    }
-
-    .details-box {
       margin-top: 14px;
+      width: 100%;
+      max-width: 100%;
     }
 
     .section-title {
@@ -270,23 +279,20 @@
       margin-bottom: 10px;
     }
 
-    .details-line,
-    .cap-line {
+    .details-line {
       font-size: 13px;
       line-height: 1.7;
       margin-bottom: 6px;
       word-break: break-word;
     }
 
-    .detail-link,
-    .cap-link {
+    .detail-link {
       color: #1f5eff;
       text-decoration: none;
       font-weight: 600;
     }
 
-    .detail-link:hover,
-    .cap-link:hover {
+    .detail-link:hover {
       text-decoration: underline;
     }
 
@@ -296,6 +302,7 @@
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
+      width: 100%;
     }
 
     .leaflet-popup-content {
@@ -354,8 +361,8 @@
     }
 
     .mini-tag-univ {
-      background: #e8f7ee;
-      color: #177245;
+      background: #dbeafe;
+      color: #1d4ed8;
     }
 
     .mini-tag-top {
@@ -379,11 +386,19 @@
     }
 
     @media (max-width: 768px) {
+      html, body {
+        overflow-x: hidden;
+      }
+
       .wrap {
+        width: 100%;
+        max-width: 100%;
         padding: 10px 8px 18px;
       }
 
       .card {
+        width: 100%;
+        max-width: 100%;
         padding: 14px;
         border-radius: 12px;
       }
@@ -398,7 +413,7 @@
       }
 
       .field, .field.small {
-        min-width: 100%;
+        min-width: 0;
         max-width: 100%;
         flex: 1 1 100%;
       }
@@ -418,14 +433,16 @@
       .search-row-mobile {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap: 10px;
         align-items: end;
+        width: 100%;
       }
 
       .search-row-mobile .field,
       .search-row-mobile .field.small {
         min-width: 0;
-        max-width: none;
+        max-width: 100%;
+        width: 100%;
         flex: none;
       }
 
@@ -447,20 +464,15 @@
         flex-direction: column;
         gap: 12px;
         width: 100%;
+        max-width: 100%;
       }
 
-      .right-col,
-      .left-col {
+      .left-col,
+      .right-col {
         width: 100%;
+        max-width: 100%;
         min-width: 0;
         flex: 0 0 100%;
-      }
-
-      .right-col {
-        order: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
       }
 
       .left-col {
@@ -470,11 +482,18 @@
         gap: 12px;
       }
 
+      .right-col {
+        order: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
       #map,
       .details-box,
-      .capability-box,
       .table-wrap {
         width: 100%;
+        max-width: 100%;
       }
 
       #map {
@@ -482,8 +501,7 @@
         border-radius: 12px;
       }
 
-      .details-box,
-      .capability-box {
+      .details-box {
         padding: 12px;
         margin-top: 0;
       }
@@ -493,8 +511,7 @@
         margin-bottom: 8px;
       }
 
-      .details-line,
-      .cap-line {
+      .details-line {
         font-size: 13px;
         line-height: 1.55;
         margin-bottom: 4px;
@@ -524,7 +541,7 @@
         border-bottom: 1px solid #e5e7eb;
         padding: 9px 8px 7px;
         background: #fff;
-        min-height: 84px;
+        min-height: 78px;
       }
 
       #resultTable td {
@@ -549,7 +566,10 @@
       }
 
       #resultTable td:nth-child(3),
-      #resultTable td:nth-child(4),
+      #resultTable td:nth-child(4) {
+        display: none;
+      }
+
       #resultTable td:nth-child(5),
       #resultTable td:nth-child(6) {
         display: inline-block;
@@ -580,12 +600,6 @@
       #resultTable tr.active-row {
         outline: 2px solid #dbeafe;
         outline-offset: -2px;
-      }
-
-      .pill,
-      .pill.top {
-        font-size: 10px;
-        padding: 3px 6px;
       }
     }
   </style>
@@ -699,19 +713,14 @@
               </tbody>
             </table>
           </div>
-
-          <div class="details-box" id="detailsBox">
-            <div class="section-title">Hospital Details</div>
-            <div class="details-line">병원을 클릭하면 전체주소 / 전화번호 / 영업시간 / 홈페이지가 표시됩니다.</div>
-          </div>
         </div>
 
         <div class="right-col">
           <div id="map"></div>
 
-          <div class="capability-box" id="capabilityBox">
-            <div class="section-title">Medical Capability</div>
-            <div class="cap-line">병원을 클릭하면 홈페이지 / Google Maps 링크가 표시됩니다.</div>
+          <div class="details-box" id="detailsBox">
+            <div class="section-title">Hospital Details</div>
+            <div class="details-line">병원을 클릭하면 전체주소 / 전화번호 / 영업시간 / 홈페이지 / Google Maps 링크가 표시됩니다.</div>
           </div>
         </div>
       </div>
@@ -736,7 +745,9 @@
     function initMap() {
       if (map) return;
 
-      map = L.map('map').setView([37.5665, 126.9780], 10);
+      map = L.map('map', {
+        zoomControl: true
+      }).setView([37.5665, 126.9780], 10);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
@@ -856,7 +867,6 @@
       resetTable();
       clearMapObjects();
       resetDetailsBox();
-      resetCapabilityBox();
       showLoginView();
     }
 
@@ -886,7 +896,6 @@
       resetTable();
       clearMapObjects();
       resetDetailsBox();
-      resetCapabilityBox();
 
       try {
         msg.className = 'msg success';
@@ -935,7 +944,6 @@
 
       if (item._detailsLoaded) {
         renderDetailsBox(item);
-        renderCapabilityBox(item);
 
         if (marker && openPopupAfterLoad) {
           marker.setPopupContent(buildPopupHtml(item, isTop));
@@ -948,8 +956,6 @@
         <div class="section-title">${escapeHtml(item.name || 'Hospital Details')}</div>
         <div class="details-line">상세정보 불러오는 중...</div>
       `;
-
-      showCapabilityLoading(item.name || '');
 
       if (marker) {
         marker.setPopupContent(`
@@ -979,7 +985,6 @@
             <div class="section-title">${escapeHtml(item.name || 'Hospital Details')}</div>
             <div class="details-line">상세정보 조회 실패</div>
           `;
-          renderCapabilityBox(item);
 
           if (marker) {
             marker.setPopupContent(`
@@ -1001,7 +1006,6 @@
         item._detailsLoaded = true;
 
         renderDetailsBox(item);
-        renderCapabilityBox(item);
 
         if (marker) {
           marker.setPopupContent(buildPopupHtml(item, isTop));
@@ -1016,7 +1020,6 @@
           <div class="section-title">${escapeHtml(item.name || 'Hospital Details')}</div>
           <div class="details-line">상세정보 조회 중 오류 발생</div>
         `;
-        renderCapabilityBox(item);
 
         if (marker) {
           marker.setPopupContent(`
@@ -1042,10 +1045,17 @@
         <div class="details-line"><b>전체 주소:</b> ${escapeHtml(item.full_address || item.address || '정보 없음')}</div>
         <div class="details-line"><b>전화번호:</b> ${escapeHtml(item.phone || '정보 없음')}</div>
         <div class="details-line"><b>영업시간:</b> ${escapeHtml(item.opening_hours || '정보 없음')}</div>
+        <div class="details-line"><b>현재 상태:</b> ${escapeHtml(getOpenNowText(item.open_now))}</div>
         <div class="details-line">
           <b>홈페이지:</b>
           ${item.website
-            ? `<a class="detail-link" href="${escapeHtml(item.website)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.website)}</a>`
+            ? `<a class="detail-link" href="${escapeHtml(item.website)}" target="_blank" rel="noopener noreferrer">병원 홈페이지 열기</a>`
+            : '정보 없음'}
+        </div>
+        <div class="details-line">
+          <b>Google Maps:</b>
+          ${item.google_maps_url
+            ? `<a class="detail-link" href="${escapeHtml(item.google_maps_url)}" target="_blank" rel="noopener noreferrer">구글맵에서 열기</a>`
             : '정보 없음'}
         </div>
       `;
@@ -1055,46 +1065,7 @@
       const box = document.getElementById('detailsBox');
       box.innerHTML = `
         <div class="section-title">Hospital Details</div>
-        <div class="details-line">병원을 클릭하면 전체주소 / 전화번호 / 영업시간 / 홈페이지가 표시됩니다.</div>
-      `;
-    }
-
-    function resetCapabilityBox() {
-      const box = document.getElementById('capabilityBox');
-      box.innerHTML = `
-        <div class="section-title">Medical Capability</div>
-        <div class="cap-line">병원을 클릭하면 홈페이지 / Google Maps 링크가 표시됩니다.</div>
-      `;
-    }
-
-    function showCapabilityLoading(name) {
-      const box = document.getElementById('capabilityBox');
-      box.innerHTML = `
-        <div class="section-title">Medical Capability</div>
-        <div class="cap-line"><b>${escapeHtml(name || '')}</b></div>
-        <div class="cap-line">불러오는 중...</div>
-      `;
-    }
-
-    function renderCapabilityBox(item) {
-      const box = document.getElementById('capabilityBox');
-      const website = item.website || '';
-
-      box.innerHTML = `
-        <div class="section-title">Medical Capability</div>
-        <div class="cap-line"><b>${escapeHtml(item.name || '')}</b></div>
-        <div class="cap-line">
-          <b>홈페이지:</b>
-          ${website
-            ? `<a class="cap-link" href="${escapeHtml(website)}" target="_blank" rel="noopener noreferrer">병원 홈페이지 열기</a>`
-            : '정보 없음'}
-        </div>
-        <div class="cap-line">
-          <b>Google Maps:</b>
-          ${item.google_maps_url
-            ? `<a class="cap-link" href="${escapeHtml(item.google_maps_url)}" target="_blank" rel="noopener noreferrer">구글맵에서 열기</a>`
-            : '정보 없음'}
-        </div>
+        <div class="details-line">병원을 클릭하면 전체주소 / 전화번호 / 영업시간 / 홈페이지 / Google Maps 링크가 표시됩니다.</div>
       `;
     }
 
@@ -1178,7 +1149,7 @@
           <div>
             <b>Website:</b>
             ${item.website
-              ? `<a class="cap-link" href="${escapeHtml(item.website)}" target="_blank" rel="noopener noreferrer">Open</a>`
+              ? `<a class="detail-link" href="${escapeHtml(item.website)}" target="_blank" rel="noopener noreferrer">Open</a>`
               : '정보 없음'}
           </div>
         </div>
@@ -1227,7 +1198,7 @@
 
       setTimeout(() => {
         map.invalidateSize();
-      }, 200);
+      }, 250);
     }
 
     function setSelectedHospital(index) {
@@ -1317,7 +1288,7 @@
 
       setTimeout(() => {
         map.invalidateSize();
-      }, 200);
+      }, 300);
 
       document.getElementById('icao').focus();
     }
@@ -1368,6 +1339,12 @@
       const savedPassword = localStorage.getItem('hospital_password');
       if (savedPassword) showSearchView();
       else showLoginView();
+    });
+
+    window.addEventListener('resize', () => {
+      if (map) {
+        setTimeout(() => map.invalidateSize(), 200);
+      }
     });
   </script>
 </body>
