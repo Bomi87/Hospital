@@ -167,6 +167,7 @@
 
     .table-wrap {
       overflow-y: auto;
+      scroll-behavior: smooth;
       overflow-x: hidden;
       border: 1px solid #e5e7eb;
       border-radius: 12px;
@@ -495,7 +496,7 @@
 
           <div class="details-box" id="detailsBox">
             <div class="section-title">Hospital Details</div>
-            <div class="details-line">병원을 클릭하면 전체주소 / 전화번호 / 현재 상태 / 영업시간 / 홈페이지가 표시됩니다.</div>
+            <div class="details-line">병원을 클릭하면 전체주소 / 전화번호 / 영업시간 / 홈페이지가 표시됩니다.</div>
           </div>
         </div>
 
@@ -517,7 +518,7 @@
   ></script>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysdyxnvCYhLnsVDNGrhAP7_D2joZgMZFvYwqi3afH7F-frcMpsTGVjaKbekYjtRh5U/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz6iGZqsxdc-ORzpW4cZ2gKBlDWmNENG6lIVj8VSKnaQpflFyhIWss3uB3D1KehUJ26/exec';
 
     let map;
     let airportMarker = null;
@@ -879,7 +880,6 @@
         <div class="section-title">${escapeHtml(item.name || 'Hospital Details')}</div>
         <div class="details-line"><b>전체 주소:</b> ${escapeHtml(item.full_address || item.address || '정보 없음')}</div>
         <div class="details-line"><b>전화번호:</b> ${escapeHtml(item.phone || '정보 없음')}</div>
-        <div class="details-line"><b>현재 상태:</b> ${escapeHtml(getOpenNowText(item.open_now))}</div>
         <div class="details-line"><b>영업시간:</b> ${escapeHtml(item.opening_hours || '정보 없음')}</div>
         <div class="details-line">
           <b>홈페이지:</b>
@@ -894,7 +894,7 @@
       const box = document.getElementById('detailsBox');
       box.innerHTML = `
         <div class="section-title">Hospital Details</div>
-        <div class="details-line">병원을 클릭하면 전체주소 / 전화번호 / 현재 상태 / 영업시간 / 홈페이지가 표시됩니다.</div>
+        <div class="details-line">병원을 클릭하면 전체주소 / 전화번호 / 영업시간 / 홈페이지가 표시됩니다.</div>
       `;
     }
 
@@ -915,6 +915,21 @@
       `;
     }
 
+    function isCapabilityValueVisible(value) {
+      const text = String(value || '').trim();
+      if (!text) return false;
+
+      const hiddenValues = new Set([
+        '확인 필요',
+        '미확인',
+        '정보 없음',
+        'Low',
+        '병원명/웹사이트 URL 기반 추정'
+      ]);
+
+      return !hiddenValues.has(text);
+    }
+
     function renderCapabilityBox(item) {
       const box = document.getElementById('capabilityBox');
       const cap = item.capability;
@@ -924,36 +939,68 @@
           <div class="section-title">Medical Capability</div>
           <div class="cap-line"><b>${escapeHtml(item.name || '')}</b></div>
           <div class="cap-line">응급실 여부 / 전문분야를 확인하지 못했습니다.</div>
+          <div class="cap-line">
+            <b>Google Maps:</b>
+            ${item.google_maps_url
+              ? `<a class="cap-link" href="${escapeHtml(item.google_maps_url)}" target="_blank" rel="noopener noreferrer">구글맵에서 열기</a>`
+              : '정보 없음'}
+          </div>
         `;
         return;
       }
 
       const specialties = Array.isArray(cap.specialties) && cap.specialties.length
         ? cap.specialties.join(', ')
-        : '정보 없음';
+        : '';
 
-      box.innerHTML = `
-        <div class="section-title">Medical Capability</div>
-        <div class="cap-line"><b>${escapeHtml(item.name || '')}</b></div>
-        <div class="cap-line"><b>응급실:</b> ${escapeHtml(cap.emergency_room || '확인 필요')}</div>
-        <div class="cap-line"><b>24시간 응급실:</b> ${escapeHtml(cap.emergency_24h || '확인 필요')}</div>
-        <div class="cap-line"><b>응급등급:</b> ${escapeHtml(cap.emergency_level || '미확인')}</div>
-        <div class="cap-line"><b>전문분야:</b> ${escapeHtml(specialties)}</div>
-        <div class="cap-line"><b>신뢰도:</b> ${escapeHtml(cap.confidence || 'Low')}</div>
-        <div class="cap-line"><b>출처:</b> ${escapeHtml(cap.source_note || '추정')}</div>
-        <div class="cap-line">
-          <b>홈페이지:</b>
-          ${cap.website
-            ? `<a class="cap-link" href="${escapeHtml(cap.website)}" target="_blank" rel="noopener noreferrer">병원 홈페이지 열기</a>`
-            : '정보 없음'}
-        </div>
+      const lines = [
+        `<div class="section-title">Medical Capability</div>`,
+        `<div class="cap-line"><b>${escapeHtml(item.name || '')}</b></div>`
+      ];
+
+      if (isCapabilityValueVisible(cap.emergency_room)) {
+        lines.push(`<div class="cap-line"><b>응급실:</b> ${escapeHtml(cap.emergency_room)}</div>`);
+      }
+
+      if (isCapabilityValueVisible(cap.emergency_24h)) {
+        lines.push(`<div class="cap-line"><b>24시간 응급실:</b> ${escapeHtml(cap.emergency_24h)}</div>`);
+      }
+
+      if (isCapabilityValueVisible(cap.emergency_level)) {
+        lines.push(`<div class="cap-line"><b>응급등급:</b> ${escapeHtml(cap.emergency_level)}</div>`);
+      }
+
+      if (isCapabilityValueVisible(specialties)) {
+        lines.push(`<div class="cap-line"><b>전문분야:</b> ${escapeHtml(specialties)}</div>`);
+      }
+
+      if (isCapabilityValueVisible(cap.confidence)) {
+        lines.push(`<div class="cap-line"><b>신뢰도:</b> ${escapeHtml(cap.confidence)}</div>`);
+      }
+
+      if (isCapabilityValueVisible(cap.source_note)) {
+        lines.push(`<div class="cap-line"><b>출처:</b> ${escapeHtml(cap.source_note)}</div>`);
+      }
+
+      if (cap.website) {
+        lines.push(`
+          <div class="cap-line">
+            <b>홈페이지:</b>
+            <a class="cap-link" href="${escapeHtml(cap.website)}" target="_blank" rel="noopener noreferrer">병원 홈페이지 열기</a>
+          </div>
+        `);
+      }
+
+      lines.push(`
         <div class="cap-line">
           <b>Google Maps:</b>
           ${item.google_maps_url
             ? `<a class="cap-link" href="${escapeHtml(item.google_maps_url)}" target="_blank" rel="noopener noreferrer">구글맵에서 열기</a>`
             : '정보 없음'}
         </div>
-      `;
+      `);
+
+      box.innerHTML = lines.join('');
     }
 
     function updateInfo(data) {
@@ -1072,8 +1119,7 @@
         }).addTo(map);
 
         marker.on('click', async () => {
-          highlightRow(index);
-          await loadHospitalDetails(index, true);
+          await focusHospital(index);
         });
 
         hospitalMarkers.push(marker);
@@ -1090,7 +1136,7 @@
     function setSelectedHospital(index) {
       selectedHospitalIndex = index;
       refreshHospitalMarkerIcons();
-      highlightRow(index);
+      highlightRow(index, true);
     }
 
     function refreshHospitalMarkerIcons() {
@@ -1115,11 +1161,26 @@
       await loadHospitalDetails(index, true);
     }
 
-    function highlightRow(index) {
+    function highlightRow(index, scrollToCenter = false) {
       const rows = document.querySelectorAll('#resultBody tr');
+      const tableWrap = document.querySelector('.table-wrap');
+
       rows.forEach((row, i) => {
         if (i === index) row.classList.add('active-row');
         else row.classList.remove('active-row');
+      });
+
+      if (!scrollToCenter || !rows[index] || !tableWrap) return;
+
+      const row = rows[index];
+      const wrapRect = tableWrap.getBoundingClientRect();
+      const rowRect = row.getBoundingClientRect();
+      const currentScroll = tableWrap.scrollTop;
+      const offset = (rowRect.top - wrapRect.top) - (tableWrap.clientHeight / 2) + (rowRect.height / 2);
+
+      tableWrap.scrollTo({
+        top: Math.max(0, currentScroll + offset),
+        behavior: 'smooth'
       });
     }
 
