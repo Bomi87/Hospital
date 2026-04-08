@@ -333,20 +333,39 @@
       filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
     }
 
-    .mobile-meta-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .mobile-meta-pill {
+    .meta-chip {
       display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
       font-size: 12px;
       color: #4b5563;
       background: #f3f4f6;
-      padding: 4px 8px;
+      white-space: nowrap;
+    }
+
+    .mini-tag {
+      display: inline-block;
+      padding: 3px 8px;
       border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .mini-tag-univ {
+      background: #e8f7ee;
+      color: #177245;
+    }
+
+    .mini-tag-top {
+      background: #ecfccb;
+      color: #3f6212;
+    }
+
+    .plain-dash {
+      color: #6b7280;
+      font-weight: 600;
     }
 
     @media (max-width: 1180px) {
@@ -390,17 +409,37 @@
         font-size: 14px;
       }
 
-      button {
-        width: 100%;
+      .top-bar .secondary {
+        width: auto;
+        min-width: 100px;
+        padding: 0 16px;
+      }
+
+      .search-row-mobile {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        align-items: end;
+      }
+
+      .search-row-mobile .field,
+      .search-row-mobile .field.small {
+        min-width: 0;
+        max-width: none;
+        flex: none;
+      }
+
+      .btn-area {
+        margin-top: 10px;
+      }
+
+      .btn-area button {
+        width: 120px;
+        margin: 0;
       }
 
       .info-grid {
-        grid-template-columns: repeat(2, minmax(0,1fr));
-        gap: 8px;
-      }
-
-      .info-box {
-        padding: 10px;
+        display: none;
       }
 
       .content-grid {
@@ -457,13 +496,13 @@
       .details-line,
       .cap-line {
         font-size: 13px;
-        line-height: 1.6;
+        line-height: 1.55;
         margin-bottom: 4px;
       }
 
       .table-wrap {
-        max-height: 420px;
-        overflow-y: auto;
+        max-height: none;
+        overflow-y: visible;
         overflow-x: hidden;
         border-radius: 12px;
       }
@@ -483,9 +522,9 @@
       #resultTable tr {
         position: relative;
         border-bottom: 1px solid #e5e7eb;
-        padding: 10px 10px 8px;
+        padding: 9px 8px 7px;
         background: #fff;
-        min-height: 96px;
+        min-height: 84px;
       }
 
       #resultTable td {
@@ -496,16 +535,17 @@
       }
 
       #resultTable td:nth-child(1) {
-        margin-bottom: 6px;
+        margin-bottom: 4px;
       }
 
       #resultTable td:nth-child(2) {
         position: absolute;
-        right: 10px;
-        top: 12px;
+        right: 8px;
+        top: 10px;
         width: auto !important;
         font-weight: 700;
         color: #111827;
+        font-size: 12px;
       }
 
       #resultTable td:nth-child(3),
@@ -514,13 +554,27 @@
       #resultTable td:nth-child(6) {
         display: inline-block;
         width: auto !important;
-        margin-right: 8px;
-        margin-top: 6px;
+        margin-right: 6px;
+        margin-top: 5px;
+        font-size: 11px;
+        background: transparent;
+        padding: 0;
+        border-radius: 0;
+        vertical-align: middle;
+      }
+
+      .meta-chip {
+        padding: 2px 7px;
+        font-size: 11px;
+      }
+
+      .mini-tag {
+        padding: 2px 7px;
+        font-size: 10px;
+      }
+
+      .plain-dash {
         font-size: 12px;
-        color: #4b5563;
-        background: #f3f4f6;
-        padding: 3px 7px;
-        border-radius: 999px;
       }
 
       #resultTable tr.active-row {
@@ -574,7 +628,7 @@
         </div>
       </div>
 
- <div class="row search-row-1-2" style="margin-top:16px;">
+      <div class="row search-row-mobile" style="margin-top:16px;">
         <div class="field small">
           <label for="icao">ICAO CODE</label>
           <input
@@ -731,33 +785,6 @@
 
       const topCount = Math.max(1, Math.ceil(results.length * 0.3));
       return new Set(scored.slice(0, topCount).map(x => x.index));
-    }
-
-    function isMobileView() {
-      return window.innerWidth <= 768;
-    }
-
-    function applyMobileLayoutOrder() {
-      const rightCol = document.querySelector('.right-col');
-      const leftCol = document.querySelector('.left-col');
-      const mapEl = document.getElementById('map');
-      const capabilityBox = document.getElementById('capabilityBox');
-      const detailsBox = document.getElementById('detailsBox');
-      const tableWrap = document.querySelector('.table-wrap');
-
-      if (!rightCol || !leftCol || !mapEl || !capabilityBox || !detailsBox || !tableWrap) return;
-
-      if (window.innerWidth <= 768) {
-        rightCol.appendChild(mapEl);
-        rightCol.appendChild(detailsBox);
-        rightCol.appendChild(capabilityBox);
-        leftCol.appendChild(tableWrap);
-      } else {
-        leftCol.appendChild(tableWrap);
-        leftCol.appendChild(detailsBox);
-        rightCol.appendChild(mapEl);
-        rightCol.appendChild(capabilityBox);
-      }
     }
 
     async function postToServer(payload) {
@@ -1010,26 +1037,9 @@
 
     function renderDetailsBox(item) {
       const box = document.getElementById('detailsBox');
-
-      const rating = item.rating || '-';
-      const reviews = item.ratings_total || '-';
-      const univ = String(item.is_university || '').trim() === 'O' ? 'O' : '-';
-      const itemIndex = currentResults.findIndex(x => x.place_id === item.place_id);
-      const topIndexes = getTopHospitalIndexes(currentResults);
-      const topText = topIndexes.has(itemIndex) ? 'TOP' : '-';
-
       box.innerHTML = `
         <div class="section-title">${escapeHtml(item.name || 'Hospital Details')}</div>
-
-        <div class="mobile-meta-row">
-          <span class="mobile-meta-pill">Distance ${escapeHtml(String(item.distance_km || '-'))} km</span>
-          <span class="mobile-meta-pill">Rating ${escapeHtml(String(rating))}</span>
-          <span class="mobile-meta-pill">Reviews ${escapeHtml(String(reviews))}</span>
-          <span class="mobile-meta-pill">Univ ${escapeHtml(univ)}</span>
-          <span class="mobile-meta-pill">Top ${escapeHtml(topText)}</span>
-        </div>
-
-        <div class="details-line" style="margin-top:10px;"><b>전체 주소:</b> ${escapeHtml(item.full_address || item.address || '정보 없음')}</div>
+        <div class="details-line"><b>전체 주소:</b> ${escapeHtml(item.full_address || item.address || '정보 없음')}</div>
         <div class="details-line"><b>전화번호:</b> ${escapeHtml(item.phone || '정보 없음')}</div>
         <div class="details-line"><b>영업시간:</b> ${escapeHtml(item.opening_hours || '정보 없음')}</div>
         <div class="details-line">
@@ -1111,20 +1121,21 @@
         const tr = document.createElement('tr');
         tr.className = 'clickable-row';
 
-      const isUniv = String(item.is_university || '').trim() === 'O';
-const isTop = topIndexes.has(index);
+        const isUniv = String(item.is_university || '').trim() === 'O';
+        const isTop = topIndexes.has(index);
 
-tr.innerHTML = `
-  <td>
-    <div style="font-weight:700; margin-bottom:4px; padding-right:72px;">${escapeHtml(item.name || '')}</div>
-    <div style="font-size:12px; color:#666;">${escapeHtml(item.address || '')}</div>
-  </td>
-  <td>${escapeHtml(String(item.distance_km || ''))} km</td>
-  <td>Rating ${escapeHtml(String(item.rating || ''))}</td>
-  <td>Reviews ${escapeHtml(String(item.ratings_total || ''))}</td>
-  <td>${isUniv ? '<span class="mini-tag mini-tag-univ">UNIV</span>' : '-'}</td>
-  <td>${isTop ? '<span class="mini-tag mini-tag-top">TOP</span>' : '-'}</td>
-`;
+        tr.innerHTML = `
+          <td>
+            <div style="font-weight:700; margin-bottom:4px; padding-right:64px;">${escapeHtml(item.name || '')}</div>
+            <div style="font-size:12px; color:#666;">${escapeHtml(item.address || '')}</div>
+          </td>
+          <td>${escapeHtml(String(item.distance_km || ''))} km</td>
+          <td><span class="meta-chip">Rating ${escapeHtml(String(item.rating || ''))}</span></td>
+          <td><span class="meta-chip">Reviews ${escapeHtml(String(item.ratings_total || ''))}</span></td>
+          <td>${isUniv ? '<span class="mini-tag mini-tag-univ">UNIV</span>' : '<span class="plain-dash">-</span>'}</td>
+          <td>${isTop ? '<span class="mini-tag mini-tag-top">TOP</span>' : '<span class="plain-dash">-</span>'}</td>
+        `;
+
         tr.addEventListener('click', async () => {
           await focusHospital(index);
         });
@@ -1176,7 +1187,6 @@ tr.innerHTML = `
 
     function renderMap(data) {
       initMap();
-      applyMobileLayoutOrder();
 
       const centerLat = Number(data.lat);
       const centerLng = Number(data.lng);
@@ -1217,7 +1227,7 @@ tr.innerHTML = `
 
       setTimeout(() => {
         map.invalidateSize();
-      }, 250);
+      }, 200);
     }
 
     function setSelectedHospital(index) {
@@ -1303,12 +1313,11 @@ tr.innerHTML = `
     function showSearchView() {
       document.getElementById('loginCard').classList.add('hidden');
       document.getElementById('searchCard').classList.remove('hidden');
-      applyMobileLayoutOrder();
       initMap();
 
       setTimeout(() => {
         map.invalidateSize();
-      }, 250);
+      }, 200);
 
       document.getElementById('icao').focus();
     }
@@ -1352,13 +1361,6 @@ tr.innerHTML = `
             searchHospitals();
           }
         });
-      }
-    });
-
-    window.addEventListener('resize', () => {
-      applyMobileLayoutOrder();
-      if (map) {
-        setTimeout(() => map.invalidateSize(), 150);
       }
     });
 
