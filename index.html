@@ -252,7 +252,7 @@
     }
 
     .details-box,
-    .info-panel-box {
+    .capability-box {
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       background: #fff;
@@ -270,7 +270,7 @@
     }
 
     .details-line,
-    .panel-line {
+    .cap-line {
       font-size: 13px;
       line-height: 1.7;
       margin-bottom: 6px;
@@ -278,14 +278,14 @@
     }
 
     .detail-link,
-    .panel-link {
+    .cap-link {
       color: #1f5eff;
       text-decoration: none;
       font-weight: 600;
     }
 
     .detail-link:hover,
-    .panel-link:hover {
+    .cap-link:hover {
       text-decoration: underline;
     }
 
@@ -300,7 +300,7 @@
     .leaflet-popup-content {
       font-size: 13px;
       line-height: 1.5;
-      max-width: 280px;
+      max-width: 300px;
       word-break: break-word;
     }
 
@@ -310,10 +310,20 @@
       border-radius: 50%;
       border: 2px solid #fff;
       box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+      transition: all 0.15s ease;
     }
 
     .marker-default { background: #2563eb; }
     .marker-top { background: #a3e635; }
+
+    .marker-selected {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #ef4444;
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 2px rgba(239,68,68,0.35);
+    }
 
     .airport-marker {
       font-size: 22px;
@@ -492,9 +502,9 @@
         <div class="right-col">
           <div id="map"></div>
 
-          <div class="info-panel-box" id="infoPanelBox">
-            <div class="section-title">Hospital Info</div>
-            <div class="panel-line">병원을 클릭하면 홈페이지 / 구글맵 링크가 표시됩니다.</div>
+          <div class="capability-box" id="capabilityBox">
+            <div class="section-title">Medical Capability</div>
+            <div class="cap-line">병원을 클릭하면 응급실 여부 / 24시간 여부 / 전문분야 / 신뢰도를 표시합니다.</div>
           </div>
         </div>
       </div>
@@ -507,13 +517,14 @@
   ></script>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1P_0Yq2i8NLbZ_uJZGfesFT42aWpPfdOEIbB9L8688zgfYwYD2UPUvsiJOy9HMHPE/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysdyxnvCYhLnsVDNGrhAP7_D2joZgMZFvYwqi3afH7F-frcMpsTGVjaKbekYjtRh5U/exec';
 
     let map;
     let airportMarker = null;
     let radiusCircle = null;
     let hospitalMarkers = [];
     let currentResults = [];
+    let selectedHospitalIndex = -1;
 
     function initMap() {
       if (map) return;
@@ -535,14 +546,16 @@
       });
     }
 
-    function getHospitalIcon(isTop) {
-      const cls = isTop ? 'marker-icon-wrap marker-top' : 'marker-icon-wrap marker-default';
+    function getHospitalIcon(isTop, isSelected) {
+      let cls = 'marker-icon-wrap marker-default';
+      if (isTop) cls = 'marker-icon-wrap marker-top';
+      if (isSelected) cls = 'marker-selected';
 
       return L.divIcon({
         className: '',
         html: `<div class="${cls}"></div>`,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10],
+        iconSize: isSelected ? [28, 28] : [20, 20],
+        iconAnchor: isSelected ? [14, 14] : [10, 10],
         popupAnchor: [0, -10]
       });
     }
@@ -632,10 +645,11 @@
       document.getElementById('loginMsg').textContent = '';
       document.getElementById('resultInfo').style.display = 'none';
       currentResults = [];
+      selectedHospitalIndex = -1;
       resetTable();
       clearMapObjects();
       resetDetailsBox();
-      resetInfoPanelBox();
+      resetCapabilityBox();
       showLoginView();
     }
 
@@ -661,10 +675,11 @@
         return;
       }
 
+      selectedHospitalIndex = -1;
       resetTable();
       clearMapObjects();
       resetDetailsBox();
-      resetInfoPanelBox();
+      resetCapabilityBox();
 
       try {
         msg.className = 'msg success';
@@ -709,9 +724,11 @@
       const marker = hospitalMarkers[index];
       const isTop = getTopHospitalIndexes(currentResults).has(index);
 
+      setSelectedHospital(index);
+
       if (item._detailsLoaded) {
         renderDetailsBox(item);
-        renderInfoPanelBox(item);
+        await loadCapability(item);
 
         if (marker && openPopupAfterLoad) {
           marker.setPopupContent(buildPopupHtml(item, isTop));
@@ -725,7 +742,7 @@
         <div class="details-line">상세정보 불러오는 중...</div>
       `;
 
-      showInfoPanelLoading(item.name || '');
+      showCapabilityLoading(item.name || '');
 
       if (marker) {
         marker.setPopupContent(`
@@ -765,7 +782,7 @@
             `);
           }
 
-          renderInfoPanelBox(item);
+          await loadCapability(item);
           return;
         }
 
@@ -778,7 +795,7 @@
         item._detailsLoaded = true;
 
         renderDetailsBox(item);
-        renderInfoPanelBox(item);
+        await loadCapability(item);
 
         if (marker) {
           marker.setPopupContent(buildPopupHtml(item, isTop));
@@ -803,7 +820,50 @@
           `);
         }
 
-        renderInfoPanelBox(item);
+        await loadCapability(item);
+      }
+    }
+
+    async function loadCapability(item) {
+      if (!item) {
+        resetCapabilityBox();
+        return;
+      }
+
+      if (item._capabilityLoaded) {
+        renderCapabilityBox(item);
+        return;
+      }
+
+      showCapabilityLoading(item.name || '');
+
+      try {
+        const password = localStorage.getItem('hospital_password') || '';
+
+        const data = await postToServer({
+          action: 'capability',
+          password,
+          place_id: item.place_id || '',
+          name: item.name || '',
+          website: item.website || '',
+          address: item.full_address || item.address || ''
+        });
+
+        if (!data.success || !data.capability) {
+          item.capability = null;
+          item._capabilityLoaded = true;
+          renderCapabilityBox(item);
+          return;
+        }
+
+        item.capability = data.capability;
+        item._capabilityLoaded = true;
+        renderCapabilityBox(item);
+
+      } catch (err) {
+        item.capability = null;
+        item._capabilityLoaded = true;
+        renderCapabilityBox(item);
       }
     }
 
@@ -838,38 +898,59 @@
       `;
     }
 
-    function resetInfoPanelBox() {
-      const box = document.getElementById('infoPanelBox');
+    function resetCapabilityBox() {
+      const box = document.getElementById('capabilityBox');
       box.innerHTML = `
-        <div class="section-title">Hospital Info</div>
-        <div class="panel-line">병원을 클릭하면 홈페이지 / 구글맵 링크가 표시됩니다.</div>
+        <div class="section-title">Medical Capability</div>
+        <div class="cap-line">병원을 클릭하면 응급실 여부 / 24시간 여부 / 전문분야 / 신뢰도를 표시합니다.</div>
       `;
     }
 
-    function showInfoPanelLoading(name) {
-      const box = document.getElementById('infoPanelBox');
+    function showCapabilityLoading(name) {
+      const box = document.getElementById('capabilityBox');
       box.innerHTML = `
-        <div class="section-title">Hospital Info</div>
-        <div class="panel-line"><b>${escapeHtml(name || '')}</b></div>
-        <div class="panel-line">추가 정보 불러오는 중...</div>
+        <div class="section-title">Medical Capability</div>
+        <div class="cap-line"><b>${escapeHtml(name || '')}</b></div>
+        <div class="cap-line">분석 중...</div>
       `;
     }
 
-    function renderInfoPanelBox(item) {
-      const box = document.getElementById('infoPanelBox');
+    function renderCapabilityBox(item) {
+      const box = document.getElementById('capabilityBox');
+      const cap = item.capability;
+
+      if (!cap) {
+        box.innerHTML = `
+          <div class="section-title">Medical Capability</div>
+          <div class="cap-line"><b>${escapeHtml(item.name || '')}</b></div>
+          <div class="cap-line">응급실 여부 / 전문분야를 확인하지 못했습니다.</div>
+        `;
+        return;
+      }
+
+      const specialties = Array.isArray(cap.specialties) && cap.specialties.length
+        ? cap.specialties.join(', ')
+        : '정보 없음';
+
       box.innerHTML = `
-        <div class="section-title">Hospital Info</div>
-        <div class="panel-line"><b>${escapeHtml(item.name || '')}</b></div>
-        <div class="panel-line">
+        <div class="section-title">Medical Capability</div>
+        <div class="cap-line"><b>${escapeHtml(item.name || '')}</b></div>
+        <div class="cap-line"><b>응급실:</b> ${escapeHtml(cap.emergency_room || '확인 필요')}</div>
+        <div class="cap-line"><b>24시간 응급실:</b> ${escapeHtml(cap.emergency_24h || '확인 필요')}</div>
+        <div class="cap-line"><b>응급등급:</b> ${escapeHtml(cap.emergency_level || '미확인')}</div>
+        <div class="cap-line"><b>전문분야:</b> ${escapeHtml(specialties)}</div>
+        <div class="cap-line"><b>신뢰도:</b> ${escapeHtml(cap.confidence || 'Low')}</div>
+        <div class="cap-line"><b>출처:</b> ${escapeHtml(cap.source_note || '추정')}</div>
+        <div class="cap-line">
           <b>홈페이지:</b>
-          ${item.website
-            ? `<a class="panel-link" href="${escapeHtml(item.website)}" target="_blank" rel="noopener noreferrer">병원 홈페이지 열기</a>`
+          ${cap.website
+            ? `<a class="cap-link" href="${escapeHtml(cap.website)}" target="_blank" rel="noopener noreferrer">병원 홈페이지 열기</a>`
             : '정보 없음'}
         </div>
-        <div class="panel-line">
+        <div class="cap-line">
           <b>Google Maps:</b>
           ${item.google_maps_url
-            ? `<a class="panel-link" href="${escapeHtml(item.google_maps_url)}" target="_blank" rel="noopener noreferrer">구글맵에서 열기</a>`
+            ? `<a class="cap-link" href="${escapeHtml(item.google_maps_url)}" target="_blank" rel="noopener noreferrer">구글맵에서 열기</a>`
             : '정보 없음'}
         </div>
       `;
@@ -927,6 +1008,14 @@
     }
 
     function buildPopupHtml(item, isTop) {
+      const erText = item.capability && item.capability.emergency_room
+        ? item.capability.emergency_room
+        : '확인 필요';
+
+      const er24Text = item.capability && item.capability.emergency_24h
+        ? item.capability.emergency_24h
+        : '확인 필요';
+
       return `
         <div>
           <div style="font-weight:700; margin-bottom:6px;">
@@ -939,11 +1028,13 @@
           <div style="margin-top:4px;"><b>Address:</b> ${escapeHtml(item.full_address || item.address || '')}</div>
           <div><b>Phone:</b> ${escapeHtml(item.phone || '정보 없음')}</div>
           <div><b>Open Now:</b> ${escapeHtml(getOpenNowText(item.open_now))}</div>
+          <div><b>ER:</b> ${escapeHtml(erText)}</div>
+          <div><b>24h ER:</b> ${escapeHtml(er24Text)}</div>
           <div><b>Hours:</b> ${escapeHtml(item.opening_hours || '정보 없음')}</div>
           <div>
             <b>Website:</b>
             ${item.website
-              ? `<a class="panel-link" href="${escapeHtml(item.website)}" target="_blank" rel="noopener noreferrer">Open</a>`
+              ? `<a class="cap-link" href="${escapeHtml(item.website)}" target="_blank" rel="noopener noreferrer">Open</a>`
               : '정보 없음'}
           </div>
         </div>
@@ -977,7 +1068,7 @@
         const isTop = topIndexes.has(index);
 
         const marker = L.marker([lat, lng], {
-          icon: getHospitalIcon(isTop)
+          icon: getHospitalIcon(isTop, index === selectedHospitalIndex)
         }).addTo(map);
 
         marker.on('click', async () => {
@@ -996,10 +1087,27 @@
       }, 200);
     }
 
-    async function focusHospital(index) {
+    function setSelectedHospital(index) {
+      selectedHospitalIndex = index;
+      refreshHospitalMarkerIcons();
       highlightRow(index);
+    }
 
+    function refreshHospitalMarkerIcons() {
+      const topIndexes = getTopHospitalIndexes(currentResults);
+
+      hospitalMarkers.forEach((marker, index) => {
+        const isTop = topIndexes.has(index);
+        const isSelected = index === selectedHospitalIndex;
+        marker.setIcon(getHospitalIcon(isTop, isSelected));
+      });
+    }
+
+    async function focusHospital(index) {
       if (!hospitalMarkers[index]) return;
+
+      setSelectedHospital(index);
+
       const marker = hospitalMarkers[index];
       const latlng = marker.getLatLng();
 
@@ -1030,6 +1138,7 @@
 
       hospitalMarkers.forEach(marker => map.removeLayer(marker));
       hospitalMarkers = [];
+      selectedHospitalIndex = -1;
     }
 
     function resetTable() {
