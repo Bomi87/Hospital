@@ -343,42 +343,162 @@
       }
     }
 
-    @media (max-width: 768px) {
-      .wrap {
-        padding: 14px 10px 24px;
-      }
+@media (max-width: 768px) {
+  .wrap {
+    padding: 10px 8px 18px;
+  }
 
-      h1 {
-        font-size: 24px;
-      }
+  .card {
+    padding: 14px;
+    border-radius: 12px;
+  }
 
-      .field, .field.small {
-        min-width: 100%;
-        max-width: 100%;
-        flex: 1 1 100%;
-      }
+  h1 {
+    font-size: 22px;
+  }
 
-      button {
-        width: 100%;
-      }
+  .sub {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
 
-      .info-grid {
-        grid-template-columns: repeat(2, minmax(0,1fr));
-      }
+  .field, .field.small {
+    min-width: 100%;
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
 
-      .table-wrap {
-        overflow-x: auto;
-      }
+  input,
+  button {
+    height: 40px;
+    font-size: 14px;
+  }
 
-      table {
-        table-layout: auto;
-        min-width: 700px;
-      }
+  button {
+    width: 100%;
+  }
 
-      #map {
-        height: 430px;
-      }
-    }
+  .info-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 8px;
+  }
+
+  .info-box {
+    padding: 10px;
+  }
+
+  .content-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .right-col {
+    order: 1;
+  }
+
+  .left-col {
+    order: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  #map {
+    height: 320px;
+    border-radius: 12px;
+  }
+
+  .details-box,
+  .capability-box {
+    padding: 12px;
+  }
+
+  .section-title {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .details-line,
+  .cap-line {
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 4px;
+  }
+
+  .table-wrap {
+    max-height: 420px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 12px;
+  }
+
+  #resultTable thead {
+    display: none;
+  }
+
+  #resultTable,
+  #resultTable tbody,
+  #resultTable tr,
+  #resultTable td {
+    display: block;
+    width: 100%;
+  }
+
+  #resultTable tr {
+    position: relative;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 10px 10px 8px;
+    background: #fff;
+    min-height: 88px;
+  }
+
+  #resultTable td {
+    border: none;
+    padding: 0;
+    text-align: left !important;
+    width: 100% !important;
+  }
+
+  #resultTable td:nth-child(1) {
+    margin-bottom: 6px;
+  }
+
+  #resultTable td:nth-child(2) {
+    position: absolute;
+    right: 10px;
+    top: 12px;
+    width: auto !important;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  #resultTable td:nth-child(3),
+  #resultTable td:nth-child(4),
+  #resultTable td:nth-child(5),
+  #resultTable td:nth-child(6) {
+    display: inline-block;
+    width: auto !important;
+    margin-right: 8px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #4b5563;
+    background: #f3f4f6;
+    padding: 3px 7px;
+    border-radius: 999px;
+  }
+
+  #resultTable tr.active-row {
+    outline: 2px solid #dbeafe;
+    outline-offset: -2px;
+  }
+
+  .pill,
+  .pill.top {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+}
   </style>
 </head>
 <body>
@@ -920,17 +1040,17 @@
           ? '<span class="pill top">TOP</span>'
           : '';
 
-        tr.innerHTML = `
-          <td>
-            <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(item.name || '')}</div>
-            <div style="font-size:12px; color:#666;">${escapeHtml(item.address || '')}</div>
-          </td>
-          <td>${escapeHtml(String(item.distance_km || ''))} km</td>
-          <td>${escapeHtml(String(item.rating || ''))}</td>
-          <td>${escapeHtml(String(item.ratings_total || ''))}</td>
-          <td>${univ}</td>
-          <td>${topBadge}</td>
-        `;
+     tr.innerHTML = `
+  <td>
+    <div style="font-weight:700; margin-bottom:4px; padding-right:72px;">${escapeHtml(item.name || '')}</div>
+    <div style="font-size:12px; color:#666;">${escapeHtml(item.address || '')}</div>
+  </td>
+  <td>${escapeHtml(String(item.distance_km || ''))} km</td>
+  <td>Rating ${escapeHtml(String(item.rating || ''))}</td>
+  <td>Reviews ${escapeHtml(String(item.ratings_total || ''))}</td>
+  <td>Univ ${univ ? 'O' : '-'}</td>
+  <td>${topIndexes.has(index) ? 'Top TOP' : 'Top -'}</td>
+`;
 
         tr.addEventListener('click', async () => {
           await focusHospital(index);
