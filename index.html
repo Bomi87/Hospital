@@ -3,11 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hospital Search</title>
+  <title>Hospital Search Map</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  />
+
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -17,40 +22,35 @@
     }
 
     .wrap {
-      max-width: 1100px;
+      max-width: 1400px;
       margin: 0 auto;
-      padding: 24px 16px 40px;
+      padding: 20px 16px 36px;
     }
 
     .card {
-      background: #ffffff;
+      background: #fff;
       border-radius: 14px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
       padding: 20px;
       margin-bottom: 18px;
     }
 
     h1 {
-      margin: 0 0 10px;
+      margin: 0 0 8px;
       font-size: 28px;
-    }
-
-    h2 {
-      margin: 0 0 14px;
-      font-size: 18px;
     }
 
     .sub {
       font-size: 14px;
       color: #666;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .row {
       display: flex;
-      gap: 12px;
       flex-wrap: wrap;
-      align-items: center;
+      gap: 12px;
+      align-items: end;
     }
 
     .field {
@@ -84,7 +84,7 @@
 
     input:focus {
       border-color: #1f5eff;
-      box-shadow: 0 0 0 3px rgba(31, 94, 255, 0.12);
+      box-shadow: 0 0 0 3px rgba(31,94,255,0.12);
     }
 
     button {
@@ -99,18 +99,12 @@
       cursor: pointer;
     }
 
-    button:hover {
-      opacity: 0.93;
-    }
-
-    button.secondary {
-      background: #6b7280;
-    }
+    button:hover { opacity: 0.93; }
+    button.secondary { background: #6b7280; }
 
     .btn-area {
       display: flex;
       gap: 10px;
-      align-items: end;
       flex-wrap: wrap;
       margin-top: 8px;
     }
@@ -121,17 +115,14 @@
       line-height: 1.5;
     }
 
-    .msg.error {
-      color: #c62828;
-    }
+    .msg.error { color: #c62828; }
+    .msg.success { color: #177245; }
 
-    .msg.success {
-      color: #177245;
-    }
+    .hidden { display: none; }
 
     .info-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0,1fr));
       gap: 10px;
       margin-top: 14px;
     }
@@ -155,55 +146,63 @@
       word-break: break-word;
     }
 
+    .content-grid {
+      display: grid;
+      grid-template-columns: 430px minmax(0, 1fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+
     .table-wrap {
-      overflow-x: auto;
-      margin-top: 14px;
+      overflow: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      max-height: 700px;
+      background: #fff;
     }
 
     table {
       width: 100%;
-      min-width: 780px;
       border-collapse: collapse;
-      background: #fff;
+      min-width: 100%;
     }
 
     th, td {
-      border: 1px solid #e5e7eb;
+      border-bottom: 1px solid #e5e7eb;
       padding: 10px 12px;
       text-align: left;
-      font-size: 14px;
+      font-size: 13px;
       vertical-align: top;
     }
 
     th {
       background: #f3f6fb;
-      font-weight: 700;
       position: sticky;
       top: 0;
       z-index: 1;
     }
 
-    tr:nth-child(even) td {
-      background: #fcfcfd;
-    }
+    tr.clickable-row { cursor: pointer; }
+    tr.clickable-row:hover td { background: #f8fbff; }
+    tr.active-row td { background: #eef4ff !important; }
 
-    .hidden {
-      display: none;
+    #map {
+      width: 100%;
+      height: 700px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      overflow: hidden;
     }
 
     .pill {
       display: inline-block;
       padding: 4px 8px;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
-      background: #eef4ff;
-      color: #1f5eff;
-    }
-
-    .pill.univ {
       background: #e8f7ee;
       color: #177245;
+      white-space: nowrap;
     }
 
     .top-bar {
@@ -214,21 +213,31 @@
       flex-wrap: wrap;
     }
 
+    .leaflet-popup-content {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1100px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #map {
+        height: 500px;
+      }
+    }
+
     @media (max-width: 768px) {
       .wrap {
-        padding: 16px 12px 28px;
+        padding: 14px 10px 24px;
       }
 
       h1 {
-        font-size: 23px;
+        font-size: 24px;
       }
 
-      .info-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .field,
-      .field.small {
+      .field, .field.small {
         min-width: 100%;
         max-width: 100%;
         flex: 1 1 100%;
@@ -238,8 +247,12 @@
         width: 100%;
       }
 
-      .btn-area {
-        width: 100%;
+      .info-grid {
+        grid-template-columns: repeat(2, minmax(0,1fr));
+      }
+
+      #map {
+        height: 420px;
       }
     }
   </style>
@@ -247,10 +260,9 @@
 <body>
   <div class="wrap">
 
-    <!-- LOGIN -->
     <div class="card" id="loginCard">
       <h1>Hospital Search</h1>
-      <div class="sub">비밀번호를 입력한 뒤 검색 화면으로 이동합니다.</div>
+      <div class="sub">비밀번호 입력 후 공항 주변 병원을 조회합니다.</div>
 
       <div class="row">
         <div class="field">
@@ -271,13 +283,12 @@
       <div id="loginMsg" class="msg"></div>
     </div>
 
-    <!-- SEARCH -->
     <div class="card hidden" id="searchCard">
       <div class="top-bar">
         <div>
-          <h1 style="margin-bottom:6px;">Hospital Search</h1>
+          <h1 style="margin-bottom:6px;">Hospital Search Map</h1>
           <div class="sub" style="margin-bottom:0;">
-            ICAO 입력 후 반경 내 종합/대형병원 후보를 조회합니다.
+            ICAO 기준 반경 내 병원 리스트와 지도를 함께 표시합니다.
           </div>
         </div>
         <div>
@@ -337,37 +348,54 @@
         </div>
       </div>
 
-      <div class="table-wrap">
-        <table id="resultTable">
-          <thead>
-            <tr>
-              <th>DEST(lat,lng)</th>
-              <th>NAME</th>
-              <th>ADDRESS</th>
-              <th>RATING</th>
-              <th>RATINGS_TOTAL</th>
-              <th>IS_UNIVERSITY</th>
-            </tr>
-          </thead>
-          <tbody id="resultBody">
-            <tr>
-              <td colspan="6">No data</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="content-grid">
+        <div class="table-wrap">
+          <table id="resultTable">
+            <thead>
+              <tr>
+                <th>NAME</th>
+                <th>DISTANCE</th>
+                <th>RATING</th>
+                <th>UNIV</th>
+              </tr>
+            </thead>
+            <tbody id="resultBody">
+              <tr>
+                <td colspan="4">No data</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="map"></div>
       </div>
     </div>
   </div>
 
-  <script>
-    /********************************************************
-     * 여기에 Apps Script 웹앱 URL 넣기
-     ********************************************************/
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzi3x1B5nL9vgHaDNUYQ2NG-pNa9yg7gzW5EXDJufcjC62isk0imt92wPTXNdp9W3jY/exec';
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    crossorigin=""
+  ></script>
 
-    /********************************************************
-     * 공통 fetch
-     ********************************************************/
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTtZxCH3gpD1rvbfl-drK6c3cw5erWsBhrdkXML5JQlMv3zWDV-7d7F9XS0wns16ee/exec';
+
+    let map;
+    let airportMarker = null;
+    let radiusCircle = null;
+    let hospitalMarkers = [];
+    let activeRowIndex = -1;
+
+    function initMap() {
+      if (map) return;
+
+      map = L.map('map').setView([37.5665, 126.9780], 10);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+    }
+
     async function postToServer(payload) {
       const res = await fetch(SCRIPT_URL, {
         method: 'POST',
@@ -386,9 +414,6 @@
       }
     }
 
-    /********************************************************
-     * 로그인
-     ********************************************************/
     async function login() {
       const passwordInput = document.getElementById('password');
       const msg = document.getElementById('loginMsg');
@@ -427,9 +452,6 @@
       }
     }
 
-    /********************************************************
-     * 로그아웃
-     ********************************************************/
     function logout() {
       localStorage.removeItem('hospital_password');
       document.getElementById('password').value = '';
@@ -439,12 +461,10 @@
       document.getElementById('loginMsg').textContent = '';
       document.getElementById('resultInfo').style.display = 'none';
       resetTable();
+      clearMapObjects();
       showLoginView();
     }
 
-    /********************************************************
-     * 검색
-     ********************************************************/
     async function searchHospitals() {
       const password = localStorage.getItem('hospital_password') || '';
       const icao = document.getElementById('icao').value.trim().toUpperCase();
@@ -468,6 +488,7 @@
       }
 
       resetTable();
+      clearMapObjects();
 
       try {
         msg.className = 'msg success';
@@ -488,6 +509,7 @@
 
         updateInfo(data);
         renderTable(data.results || []);
+        renderMap(data);
 
         const count = (data.results || []).length;
         const cachedText = data.cached ? ' / cache' : '';
@@ -500,9 +522,6 @@
       }
     }
 
-    /********************************************************
-     * 결과 정보 표시
-     ********************************************************/
     function updateInfo(data) {
       document.getElementById('resultInfo').style.display = 'grid';
       document.getElementById('infoIcao').textContent = data.icao || '-';
@@ -511,44 +530,134 @@
       document.getElementById('infoCache').textContent = data.cached ? 'YES' : 'NO';
     }
 
-    /********************************************************
-     * 테이블 렌더링
-     ********************************************************/
     function renderTable(results) {
       const tbody = document.getElementById('resultBody');
       tbody.innerHTML = '';
+      activeRowIndex = -1;
 
       if (!results || results.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6">No results</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4">No results</td></tr>';
         return;
       }
 
-      results.forEach(item => {
+      results.forEach((item, index) => {
         const tr = document.createElement('tr');
+        tr.className = 'clickable-row';
 
         const univ = String(item.is_university || '').trim() === 'O'
-          ? '<span class="pill univ">O</span>'
+          ? '<span class="pill">O</span>'
           : '';
 
         tr.innerHTML = `
-          <td>${escapeHtml(item.dest || '')}</td>
-          <td>${escapeHtml(item.name || '')}</td>
-          <td>${escapeHtml(item.address || '')}</td>
+          <td>
+            <div style="font-weight:700; margin-bottom:4px;">${escapeHtml(item.name || '')}</div>
+            <div style="font-size:12px; color:#666;">${escapeHtml(item.address || '')}</div>
+          </td>
+          <td>${escapeHtml(String(item.distance_km || ''))} km</td>
           <td>${escapeHtml(String(item.rating || ''))}</td>
-          <td>${escapeHtml(String(item.ratings_total || ''))}</td>
           <td>${univ}</td>
         `;
+
+        tr.addEventListener('click', () => {
+          focusHospital(index);
+        });
 
         tbody.appendChild(tr);
       });
     }
 
-    /********************************************************
-     * 초기화
-     ********************************************************/
+    function renderMap(data) {
+      initMap();
+
+      const centerLat = Number(data.lat);
+      const centerLng = Number(data.lng);
+      const radiusKm = Number(data.radius || 20);
+      const results = data.results || [];
+
+      airportMarker = L.marker([centerLat, centerLng]).addTo(map)
+        .bindPopup(`<b>${escapeHtml(data.icao || 'AIRPORT')}</b><br>Airport Center`);
+
+      radiusCircle = L.circle([centerLat, centerLng], {
+        radius: radiusKm * 1000
+      }).addTo(map);
+
+      const bounds = L.latLngBounds([[centerLat, centerLng]]);
+
+      results.forEach((item, index) => {
+        const lat = Number(item.lat);
+        const lng = Number(item.lng);
+        if (!isFinite(lat) || !isFinite(lng)) return;
+
+        const popupHtml = `
+          <div>
+            <div style="font-weight:700; margin-bottom:6px;">${escapeHtml(item.name || '')}</div>
+            <div><b>Distance:</b> ${escapeHtml(String(item.distance_km || ''))} km</div>
+            <div><b>Rating:</b> ${escapeHtml(String(item.rating || ''))}</div>
+            <div style="margin-top:4px;">${escapeHtml(item.address || '')}</div>
+          </div>
+        `;
+
+        const marker = L.marker([lat, lng]).addTo(map).bindPopup(popupHtml);
+
+        marker.on('click', () => {
+          highlightRow(index);
+        });
+
+        hospitalMarkers.push(marker);
+        bounds.extend([lat, lng]);
+      });
+
+      map.fitBounds(bounds, { padding: [30, 30] });
+
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 200);
+    }
+
+    function focusHospital(index) {
+      if (!hospitalMarkers[index]) return;
+      highlightRow(index);
+
+      const marker = hospitalMarkers[index];
+      const latlng = marker.getLatLng();
+      map.setView(latlng, Math.max(map.getZoom(), 13), { animate: true });
+      marker.openPopup();
+    }
+
+    function highlightRow(index) {
+      const rows = document.querySelectorAll('#resultBody tr');
+      rows.forEach((row, i) => {
+        if (i === index) {
+          row.classList.add('active-row');
+        } else {
+          row.classList.remove('active-row');
+        }
+      });
+      activeRowIndex = index;
+    }
+
+    function clearMapObjects() {
+      if (!map) return;
+
+      if (airportMarker) {
+        map.removeLayer(airportMarker);
+        airportMarker = null;
+      }
+
+      if (radiusCircle) {
+        map.removeLayer(radiusCircle);
+        radiusCircle = null;
+      }
+
+      hospitalMarkers.forEach(marker => {
+        map.removeLayer(marker);
+      });
+      hospitalMarkers = [];
+    }
+
     function resetTable() {
       const tbody = document.getElementById('resultBody');
-      tbody.innerHTML = '<tr><td colspan="6">No data</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4">No data</td></tr>';
     }
 
     function showLoginView() {
@@ -559,12 +668,15 @@
     function showSearchView() {
       document.getElementById('loginCard').classList.add('hidden');
       document.getElementById('searchCard').classList.remove('hidden');
+      initMap();
+
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 200);
+
       document.getElementById('icao').focus();
     }
 
-    /********************************************************
-     * XSS 방지용 escape
-     ********************************************************/
     function escapeHtml(value) {
       return String(value)
         .replaceAll('&', '&amp;')
@@ -574,9 +686,6 @@
         .replaceAll("'", '&#039;');
     }
 
-    /********************************************************
-     * 페이지 로드 시 로그인 상태 확인
-     ********************************************************/
     window.addEventListener('load', () => {
       const savedPassword = localStorage.getItem('hospital_password');
       if (savedPassword) {
