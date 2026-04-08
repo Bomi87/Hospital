@@ -22,7 +22,7 @@
     }
 
     .wrap {
-      max-width: 1450px;
+      max-width: 1500px;
       margin: 0 auto;
       padding: 20px 16px 36px;
     }
@@ -148,13 +148,26 @@
 
     .content-grid {
       display: grid;
-      grid-template-columns: 560px minmax(0, 1fr);
+      grid-template-columns: minmax(680px, 1.15fr) minmax(520px, 0.85fr);
       gap: 16px;
       margin-top: 16px;
+      align-items: start;
+    }
+
+    .left-col,
+    .right-col {
+      min-width: 0;
+    }
+
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
 
     .table-wrap {
-      overflow: auto;
+      overflow-y: auto;
+      overflow-x: hidden;
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       max-height: 720px;
@@ -164,15 +177,17 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 100%;
+      table-layout: fixed;
     }
 
     th, td {
       border-bottom: 1px solid #e5e7eb;
-      padding: 10px 12px;
+      padding: 10px 10px;
       text-align: left;
       font-size: 13px;
       vertical-align: top;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     th {
@@ -183,16 +198,41 @@
       white-space: nowrap;
     }
 
+    #resultTable th:nth-child(1),
+    #resultTable td:nth-child(1) { width: 40%; }
+
+    #resultTable th:nth-child(2),
+    #resultTable td:nth-child(2) { width: 16%; }
+
+    #resultTable th:nth-child(3),
+    #resultTable td:nth-child(3) { width: 12%; }
+
+    #resultTable th:nth-child(4),
+    #resultTable td:nth-child(4) { width: 15%; }
+
+    #resultTable th:nth-child(5),
+    #resultTable td:nth-child(5) {
+      width: 8%;
+      text-align: center;
+    }
+
+    #resultTable th:nth-child(6),
+    #resultTable td:nth-child(6) {
+      width: 9%;
+      text-align: center;
+    }
+
     tr.clickable-row { cursor: pointer; }
     tr.clickable-row:hover td { background: #f8fbff; }
     tr.active-row td { background: #eef4ff !important; }
 
     #map {
       width: 100%;
-      height: 720px;
+      height: 690px;
       border-radius: 12px;
       border: 1px solid #e5e7eb;
       overflow: hidden;
+      background: #fff;
     }
 
     .pill {
@@ -211,25 +251,50 @@
       color: #3f6212;
     }
 
-    .details-box {
-      margin-top: 14px;
+    .details-box,
+    .wiki-box {
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       background: #fff;
       padding: 14px;
     }
 
-    .details-title {
+    .details-box {
+      margin-top: 14px;
+    }
+
+    .section-title {
       font-size: 15px;
       font-weight: 700;
       margin-bottom: 10px;
     }
 
-    .details-line {
+    .details-line,
+    .wiki-line {
       font-size: 13px;
-      line-height: 1.6;
+      line-height: 1.7;
       margin-bottom: 6px;
       word-break: break-word;
+    }
+
+    .wiki-summary {
+      font-size: 14px;
+      line-height: 1.8;
+      word-break: break-word;
+      white-space: normal;
+    }
+
+    .wiki-link {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1f5eff;
+      text-decoration: none;
+    }
+
+    .wiki-link:hover {
+      text-decoration: underline;
     }
 
     .top-bar {
@@ -296,6 +361,15 @@
 
       .info-grid {
         grid-template-columns: repeat(2, minmax(0,1fr));
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      table {
+        table-layout: auto;
+        min-width: 700px;
       }
 
       #map {
@@ -396,7 +470,7 @@
       </div>
 
       <div class="content-grid">
-        <div>
+        <div class="left-col">
           <div class="table-wrap">
             <table id="resultTable">
               <thead>
@@ -418,12 +492,19 @@
           </div>
 
           <div class="details-box" id="detailsBox">
-            <div class="details-title">Hospital Details</div>
+            <div class="section-title">Hospital Details</div>
             <div class="details-line">병원을 클릭하면 전체주소 / 전화번호 / 운영시간이 표시됩니다.</div>
           </div>
         </div>
 
-        <div id="map"></div>
+        <div class="right-col">
+          <div id="map"></div>
+
+          <div class="wiki-box" id="wikiBox">
+            <div class="section-title">위키백과</div>
+            <div class="wiki-line">병원을 클릭하면 한국어 위키백과 요약이 표시됩니다.</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -562,6 +643,7 @@
       resetTable();
       clearMapObjects();
       resetDetailsBox();
+      resetWikiBox();
       showLoginView();
     }
 
@@ -590,6 +672,7 @@
       resetTable();
       clearMapObjects();
       resetDetailsBox();
+      resetWikiBox();
 
       try {
         msg.className = 'msg success';
@@ -625,22 +708,49 @@
       }
     }
 
-    async function loadHospitalDetails(index) {
+    async function loadHospitalDetails(index, openPopupAfterLoad = true) {
       const item = currentResults[index];
       if (!item || !item.place_id) return;
 
       const password = localStorage.getItem('hospital_password') || '';
       const box = document.getElementById('detailsBox');
+      const marker = hospitalMarkers[index];
+      const isTop = getTopHospitalIndexes(currentResults).has(index);
 
       if (item._detailsLoaded) {
         renderDetailsBox(item);
+
+        if (marker && openPopupAfterLoad) {
+          marker.setPopupContent(buildPopupHtml(item, isTop));
+          marker.openPopup();
+        }
+
+        await loadWikipediaSummary(item);
         return;
       }
 
       box.innerHTML = `
-        <div class="details-title">${escapeHtml(item.name || 'Hospital Details')}</div>
+        <div class="section-title">${escapeHtml(item.name || 'Hospital Details')}</div>
         <div class="details-line">상세정보 불러오는 중...</div>
       `;
+
+      showWikiLoading(item.name || '');
+
+      if (marker) {
+        marker.setPopupContent(`
+          <div>
+            <div style="font-weight:700; margin-bottom:6px;">
+              ${escapeHtml(item.name || '')}
+              ${isTop ? '<span style="display:inline-block;margin-left:6px;padding:2px 6px;border-radius:999px;background:#ecfccb;color:#3f6212;font-size:11px;font-weight:700;">TOP</span>' : ''}
+            </div>
+            <div>상세정보 불러오는 중...</div>
+          </div>
+        `);
+
+        if (openPopupAfterLoad) {
+          marker.openPopup();
+        }
+      }
 
       try {
         const data = await postToServer({
@@ -651,9 +761,20 @@
 
         if (!data.success) {
           box.innerHTML = `
-            <div class="details-title">${escapeHtml(item.name || 'Hospital Details')}</div>
+            <div class="section-title">${escapeHtml(item.name || 'Hospital Details')}</div>
             <div class="details-line">상세정보 조회 실패</div>
           `;
+
+          if (marker) {
+            marker.setPopupContent(`
+              <div>
+                <div style="font-weight:700; margin-bottom:6px;">${escapeHtml(item.name || '')}</div>
+                <div>상세정보 조회 실패</div>
+              </div>
+            `);
+          }
+
+          await loadWikipediaSummary(item);
           return;
         }
 
@@ -666,26 +787,40 @@
 
         renderDetailsBox(item);
 
-        const marker = hospitalMarkers[index];
         if (marker) {
-          marker.setPopupContent(buildPopupHtml(item, getTopHospitalIndexes(currentResults).has(index)));
-          marker.openPopup();
+          marker.setPopupContent(buildPopupHtml(item, isTop));
+
+          if (openPopupAfterLoad) {
+            marker.openPopup();
+          }
         }
+
+        await loadWikipediaSummary(item);
 
       } catch (err) {
         box.innerHTML = `
-          <div class="details-title">${escapeHtml(item.name || 'Hospital Details')}</div>
+          <div class="section-title">${escapeHtml(item.name || 'Hospital Details')}</div>
           <div class="details-line">상세정보 조회 중 오류 발생</div>
         `;
+
+        if (marker) {
+          marker.setPopupContent(`
+            <div>
+              <div style="font-weight:700; margin-bottom:6px;">${escapeHtml(item.name || '')}</div>
+              <div>상세정보 조회 중 오류 발생</div>
+            </div>
+          `);
+        }
+
+        await loadWikipediaSummary(item);
       }
     }
 
     function renderDetailsBox(item) {
       const box = document.getElementById('detailsBox');
       box.innerHTML = `
-        <div class="details-title">${escapeHtml(item.name || 'Hospital Details')}</div>
-        <div class="details-line"><b>기본 주소:</b> ${escapeHtml(item.address || '')}</div>
-        <div class="details-line"><b>전체 주소:</b> ${escapeHtml(item.full_address || '정보 없음')}</div>
+        <div class="section-title">${escapeHtml(item.name || 'Hospital Details')}</div>
+        <div class="details-line"><b>전체 주소:</b> ${escapeHtml(item.full_address || item.address || '정보 없음')}</div>
         <div class="details-line"><b>전화번호:</b> ${escapeHtml(item.phone || '정보 없음')}</div>
         <div class="details-line"><b>운영시간:</b> ${escapeHtml(item.opening_hours || '정보 없음')}</div>
       `;
@@ -694,8 +829,133 @@
     function resetDetailsBox() {
       const box = document.getElementById('detailsBox');
       box.innerHTML = `
-        <div class="details-title">Hospital Details</div>
+        <div class="section-title">Hospital Details</div>
         <div class="details-line">병원을 클릭하면 전체주소 / 전화번호 / 운영시간이 표시됩니다.</div>
+      `;
+    }
+
+    function resetWikiBox() {
+      const box = document.getElementById('wikiBox');
+      box.innerHTML = `
+        <div class="section-title">위키백과</div>
+        <div class="wiki-line">병원을 클릭하면 한국어 위키백과 요약이 표시됩니다.</div>
+      `;
+    }
+
+    function showWikiLoading(name) {
+      const box = document.getElementById('wikiBox');
+      box.innerHTML = `
+        <div class="section-title">위키백과</div>
+        <div class="wiki-line"><b>${escapeHtml(name || '')}</b></div>
+        <div class="wiki-line">위키백과 정보 불러오는 중...</div>
+      `;
+    }
+
+    function normalizeHospitalName(name) {
+      return String(name || '')
+        .replace(/\s*\([^)]*\)\s*/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function getWikipediaCandidates(name) {
+      const base = normalizeHospitalName(name);
+      const candidates = [];
+
+      if (base) candidates.push(base);
+
+      if (base.includes('순천향대학교 부속 부천병원')) {
+        candidates.push('순천향대학교 부속 부천병원');
+      }
+
+      if (base.includes('서울대학교병원')) candidates.push('서울대학교병원');
+      if (base.includes('이대서울병원')) candidates.push('이대서울병원');
+      if (base.includes('부천병원')) candidates.push('부천병원');
+
+      return [...new Set(candidates.filter(Boolean))];
+    }
+
+    async function fetchWikipediaSummaryByTitle(title) {
+      const url = `https://ko.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+      const res = await fetch(url, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!res.ok) {
+        throw new Error(`Wikipedia ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if (!data || data.type === 'https://mediawiki.org/wiki/HyperSwitch/errors/not_found') {
+        throw new Error('not found');
+      }
+
+      if (!data.extract || !String(data.extract).trim()) {
+        throw new Error('empty extract');
+      }
+
+      return {
+        title: data.title || title,
+        extract: data.extract || '',
+        url: data.content_urls?.desktop?.page || ''
+      };
+    }
+
+    async function loadWikipediaSummary(item) {
+      const box = document.getElementById('wikiBox');
+      if (!item) {
+        resetWikiBox();
+        return;
+      }
+
+      if (item._wikiLoaded) {
+        renderWikiBox(item);
+        return;
+      }
+
+      showWikiLoading(item.name || '');
+
+      const candidates = getWikipediaCandidates(item.name || '');
+
+      for (const title of candidates) {
+        try {
+          const wiki = await fetchWikipediaSummaryByTitle(title);
+          item.wiki_title = wiki.title || '';
+          item.wiki_summary = wiki.extract || '';
+          item.wiki_url = wiki.url || '';
+          item._wikiLoaded = true;
+          renderWikiBox(item);
+          return;
+        } catch (err) {}
+      }
+
+      item.wiki_title = '';
+      item.wiki_summary = '';
+      item.wiki_url = '';
+      item._wikiLoaded = true;
+      renderWikiBox(item);
+    }
+
+    function renderWikiBox(item) {
+      const box = document.getElementById('wikiBox');
+
+      if (!item.wiki_summary) {
+        box.innerHTML = `
+          <div class="section-title">위키백과</div>
+          <div class="wiki-line"><b>${escapeHtml(item.name || '')}</b></div>
+          <div class="wiki-line">한국어 위키백과 요약 정보를 찾지 못했습니다.</div>
+        `;
+        return;
+      }
+
+      box.innerHTML = `
+        <div class="section-title">위키백과</div>
+        <div class="wiki-line"><b>${escapeHtml(item.wiki_title || item.name || '')}</b></div>
+        <div class="wiki-summary">${escapeHtml(item.wiki_summary)}</div>
+        ${item.wiki_url ? `<a class="wiki-link" href="${escapeHtml(item.wiki_url)}" target="_blank" rel="noopener noreferrer">위키백과에서 열기</a>` : ''}
       `;
     }
 
@@ -743,8 +1003,7 @@
         `;
 
         tr.addEventListener('click', async () => {
-          focusHospital(index);
-          await loadHospitalDetails(index);
+          await focusHospital(index);
         });
 
         tbody.appendChild(tr);
@@ -796,11 +1055,11 @@
 
         const marker = L.marker([lat, lng], {
           icon: getHospitalIcon(isTop)
-        }).addTo(map).bindPopup(buildPopupHtml(item, isTop));
+        }).addTo(map);
 
         marker.on('click', async () => {
           highlightRow(index);
-          await loadHospitalDetails(index);
+          await loadHospitalDetails(index, true);
         });
 
         hospitalMarkers.push(marker);
@@ -814,14 +1073,15 @@
       }, 200);
     }
 
-    function focusHospital(index) {
+    async function focusHospital(index) {
       highlightRow(index);
 
       if (!hospitalMarkers[index]) return;
       const marker = hospitalMarkers[index];
       const latlng = marker.getLatLng();
+
       map.setView(latlng, Math.max(map.getZoom(), 13), { animate: true });
-      marker.openPopup();
+      await loadHospitalDetails(index, true);
     }
 
     function highlightRow(index) {
