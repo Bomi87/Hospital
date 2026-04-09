@@ -927,65 +927,81 @@
       showLoginView();
     }
 
-    async function searchHospitals() {
-      const password = localStorage.getItem('hospital_password') || '';
-      const icao = document.getElementById('icao').value.trim().toUpperCase();
-      const radius = document.getElementById('radius').value.trim();
-      const msg = document.getElementById('searchMsg');
+  async function searchHospitals(retryCount = 0) {
+  const password = localStorage.getItem('hospital_password') || '';
+  const icao = document.getElementById('icao').value.trim().toUpperCase();
+  const radius = document.getElementById('radius').value.trim();
+  const msg = document.getElementById('searchMsg');
 
-      msg.className = 'msg';
-      msg.textContent = '';
+  msg.className = 'msg';
+  msg.textContent = '';
 
-      if (!password) {
-        msg.className = 'msg error';
-        msg.textContent = '로그인이 필요합니다.';
-        showLoginView();
+  if (!password) {
+    msg.className = 'msg error';
+    msg.textContent = '로그인이 필요합니다.';
+    showLoginView();
+    return;
+  }
+
+  if (!icao) {
+    msg.className = 'msg error';
+    msg.textContent = 'ICAO CODE를 입력해 주세요.';
+    return;
+  }
+
+  selectedHospitalIndex = -1;
+  resetTable();
+  clearMapObjects();
+  resetDetailsBox();
+
+  try {
+    msg.className = 'msg success';
+    msg.textContent = '조회 중...';
+
+    const data = await postToServer({
+      action: 'search',
+      password,
+      icao,
+      radius
+    });
+
+    if (data.busy) {
+      msg.className = 'msg success';
+      msg.textContent = '다른 사용자가 조회 중입니다. 잠시 후 자동으로 다시 시도합니다...';
+
+      if (retryCount < 10) {
+        setTimeout(() => {
+          searchHospitals(retryCount + 1);
+        }, 2500);
         return;
       }
 
-      if (!icao) {
-        msg.className = 'msg error';
-        msg.textContent = 'ICAO CODE를 입력해 주세요.';
-        return;
-      }
-
-      selectedHospitalIndex = -1;
-      resetTable();
-      clearMapObjects();
-      resetDetailsBox();
-
-      try {
-        msg.className = 'msg success';
-        msg.textContent = '조회 중...';
-
-        const data = await postToServer({
-          action: 'search',
-          password,
-          icao,
-          radius
-        });
-
-        if (!data.success) {
-          msg.className = 'msg error';
-          msg.textContent = data.message || '조회 실패';
-          return;
-        }
-
-        currentResults = data.results || [];
-
-        updateInfo(data);
-        renderTable(currentResults);
-        renderMap(data);
-
-        const count = currentResults.length;
-        const cachedText = data.cached ? ' / cache' : '';
-        msg.className = 'msg success';
-        msg.textContent = `${count}건 조회 완료${cachedText}`;
-      } catch (err) {
-        msg.className = 'msg error';
-        msg.textContent = '조회 중 오류가 발생했습니다.';
-      }
+      msg.className = 'msg error';
+      msg.textContent = '다른 사용자가 계속 조회 중입니다. 잠시 후 다시 시도해 주세요.';
+      return;
     }
+
+    if (!data.success) {
+      msg.className = 'msg error';
+      msg.textContent = data.message || '조회 실패';
+      return;
+    }
+
+    currentResults = data.results || [];
+
+    updateInfo(data);
+    renderTable(currentResults);
+    renderMap(data);
+
+    const count = currentResults.length;
+    const cachedText = data.cached ? ' / cache' : '';
+    msg.className = 'msg success';
+    msg.textContent = `${count}건 조회 완료${cachedText}`;
+  } catch (err) {
+    msg.className = 'msg error';
+    msg.textContent = '조회 중 오류가 발생했습니다.';
+  }
+}
 
     async function loadHospitalDetails(index, openPopupAfterLoad = true) {
       const item = currentResults[index];
