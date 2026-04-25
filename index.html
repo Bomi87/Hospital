@@ -1560,19 +1560,27 @@
       }, 100);
     }
 
-    function showSearchView() {
-      document.body.classList.remove('login-modal-open');
-      document.getElementById('loginCard').classList.add('hidden');
-      document.getElementById('searchCard').classList.remove('hidden');
+   function showSearchView() {
+  document.body.classList.remove('login-modal-open');
+
+  document.getElementById('loginCard').classList.add('hidden');
+  document.getElementById('searchCard').classList.remove('hidden');
+
+  window.scrollTo(0, 0);
+
+  const icaoInput = document.getElementById('icao');
+  if (icaoInput) icaoInput.focus();
+
+  requestAnimationFrame(() => {
+    setTimeout(() => {
       initMap();
 
-      setTimeout(() => {
-        window.scrollTo(0, 0);
-        if (map) map.invalidateSize();
-      }, 300);
-
-      document.getElementById('icao').focus();
-    }
+      if (map) {
+        map.invalidateSize();
+      }
+    }, 50);
+  });
+}
 
     function escapeHtml(value) {
       return String(value ?? '')
