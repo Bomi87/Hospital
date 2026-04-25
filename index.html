@@ -660,191 +660,107 @@
       }
     }
 
-    /* ===== Page Password Modal ===== */
-    .page-password-overlay {
+    /* ===== Login Card Modal Style - original login() logic preserved ===== */
+    body.login-modal-open {
+      overflow: hidden;
+    }
+
+    body.login-modal-open::before {
+      content: "";
       position: fixed;
       inset: 0;
-      z-index: 99999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
+      z-index: 9998;
       background: rgba(15, 23, 42, 0.38);
       backdrop-filter: blur(5px);
       -webkit-backdrop-filter: blur(5px);
     }
 
-    .page-password-overlay.hidden {
-      display: none !important;
-    }
-
-    .page-password-modal {
+    body.login-modal-open #loginCard {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
       width: min(92vw, 560px);
-      background: #fff;
-      border: 1px solid #e5e7eb;
+      max-width: 560px;
+      margin: 0;
       border-radius: 18px;
       box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
-      padding: 24px 26px 26px;
-      color: #111827;
     }
 
-    .page-password-title {
-      margin: 0 0 14px;
+    body.login-modal-open #loginCard h1 {
       font-size: 23px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
+      margin-bottom: 10px;
     }
 
-    .page-password-sub {
-      margin-bottom: 18px;
-      color: #64748b;
+    body.login-modal-open #loginCard .sub {
       font-size: 15px;
-      line-height: 1.5;
+      color: #64748b;
+      margin-bottom: 18px;
     }
 
-    .page-password-modal input {
+    body.login-modal-open #loginCard .row {
+      display: block;
+    }
+
+    body.login-modal-open #loginCard .field {
       width: 100%;
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    body.login-modal-open #loginCard input {
       height: 58px;
       border-radius: 14px;
-      border: 1px solid #d0d7de;
-      background: #fff;
-      color: #111827;
       font-size: 18px !important;
-      padding: 0 16px;
-      outline: none;
     }
 
-    .page-password-modal input:focus {
-      border-color: #1f5eff;
-      box-shadow: 0 0 0 4px rgba(31, 94, 255, 0.12);
-    }
-
-    .page-password-error {
-      min-height: 20px;
-      margin-top: 10px;
-      color: #c62828;
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
-    .page-password-actions {
-      display: flex;
+    body.login-modal-open #loginCard .btn-area {
       justify-content: flex-end;
-      gap: 12px;
       margin-top: 14px;
     }
 
-    .page-password-btn {
-      min-width: 78px;
+    body.login-modal-open #loginCard .btn-area button {
+      min-width: 88px;
       height: 48px;
       border-radius: 12px;
       font-size: 15px;
       font-weight: 800;
-    }
-
-    .page-password-btn.cancel {
-      background: #111827;
-      color: #fff;
-    }
-
-    .page-password-btn.confirm {
       background: #5a9df8;
-      color: #fff;
-    }
-
-    body.page-locked {
-      overflow: hidden;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      .page-password-overlay {
-        background: rgba(2, 6, 23, 0.58);
-      }
-
-      .page-password-modal {
-        background: #111827;
-        border-color: rgba(148, 163, 184, 0.22);
-        color: #f8fafc;
-        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48);
-      }
-
-      .page-password-sub {
-        color: #94a3b8;
-      }
-
-      .page-password-modal input {
-        background: #0b1220;
-        border-color: rgba(148, 163, 184, 0.24);
-        color: #f8fafc;
-      }
-
-      .page-password-btn.cancel {
-        background: #0b1220;
-        border: 1px solid rgba(148, 163, 184, 0.24);
-      }
     }
 
     @media (max-width: 768px) {
-      .page-password-overlay {
-        align-items: center;
-        padding: 14px;
-      }
-
-      .page-password-modal {
-        width: 100%;
-        border-radius: 16px;
+      body.login-modal-open #loginCard {
+        width: calc(100vw - 28px);
+        max-width: calc(100vw - 28px);
         padding: 22px 18px 20px;
+        border-radius: 16px;
       }
 
-      .page-password-title {
+      body.login-modal-open #loginCard h1 {
         font-size: 21px;
       }
 
-      .page-password-sub {
+      body.login-modal-open #loginCard .sub {
         font-size: 14px;
       }
 
-      .page-password-modal input {
+      body.login-modal-open #loginCard input {
         height: 54px;
         font-size: 16px !important;
       }
 
-      .page-password-actions {
-        gap: 10px;
-      }
-
-      .page-password-btn {
-        height: 48px;
-        min-width: 74px;
+      body.login-modal-open #loginCard .btn-area button {
+        width: 88px;
+        min-width: 88px;
       }
     }
 
   </style>
 </head>
-<body class="page-locked">
-  <div id="pagePasswordOverlay" class="page-password-overlay">
-    <div class="page-password-modal" role="dialog" aria-modal="true" aria-labelledby="pagePasswordTitle">
-      <h2 id="pagePasswordTitle" class="page-password-title">Hospital Search</h2>
-      <div class="page-password-sub">비밀번호를 입력한 뒤 이용할 수 있습니다.</div>
-
-      <input
-        type="password"
-        id="pagePasswordInput"
-        placeholder="Password"
-        autocomplete="off"
-      />
-
-      <div id="pagePasswordMsg" class="page-password-error"></div>
-
-      <div class="page-password-actions">
-        <button type="button" class="page-password-btn cancel" onclick="clearPagePasswordInput()">취소</button>
-        <button type="button" class="page-password-btn confirm" onclick="checkPagePassword()">확인</button>
-      </div>
-    </div>
-  </div>
-
+<body>
   <div class="wrap">
-    <div class="card hidden" id="loginCard" style="display:none !important;">
+    <div class="card" id="loginCard">
       <h1>Hospital Search</h1>
       <div class="sub">비밀번호 입력 후 공항 주변 병원을 조회합니다.</div>
 
@@ -866,7 +782,7 @@
       <div id="loginMsg" class="msg"></div>
     </div>
 
-    <div class="card" id="searchCard">
+    <div class="card hidden" id="searchCard">
       <div class="top-bar">
         <div>
           <h1 style="margin-bottom:6px;">Hospital Search Map</h1>
@@ -974,75 +890,6 @@
   <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBhN_v3M03ukQGweYqBxWgHGedgSejVFFYKA1bO0PG_vx2xzTKZnDrqQPQ3Pho9_Es/exec';
 
-    const PAGE_PASSWORD = 'HL8080';
-
-    function showPagePasswordOverlay() {
-      const overlay = document.getElementById('pagePasswordOverlay');
-      const input = document.getElementById('pagePasswordInput');
-      const msg = document.getElementById('pagePasswordMsg');
-
-      if (overlay) overlay.classList.remove('hidden');
-      document.body.classList.add('page-locked');
-
-      if (msg) msg.textContent = '';
-      if (input) {
-        input.value = '';
-        setTimeout(() => input.focus(), 100);
-      }
-    }
-
-    function hidePagePasswordOverlay() {
-      const overlay = document.getElementById('pagePasswordOverlay');
-      if (overlay) overlay.classList.add('hidden');
-      document.body.classList.remove('page-locked');
-      setTimeout(() => {
-        if (map) map.invalidateSize();
-      }, 250);
-    }
-
-    function clearPagePasswordInput() {
-      const input = document.getElementById('pagePasswordInput');
-      const msg = document.getElementById('pagePasswordMsg');
-
-      if (input) {
-        input.value = '';
-        input.focus();
-      }
-      if (msg) msg.textContent = '';
-    }
-
-    function checkPagePassword() {
-      const input = document.getElementById('pagePasswordInput');
-      const msg = document.getElementById('pagePasswordMsg');
-
-      const value = String((input && input.value) || '').trim().toUpperCase();
-      const correctPassword = PAGE_PASSWORD.toUpperCase();
-
-      if (msg) msg.textContent = '';
-
-      if (!value) {
-        if (msg) msg.textContent = '비밀번호를 입력해 주세요.';
-        if (input) input.focus();
-        return;
-      }
-
-      if (value !== correctPassword) {
-        if (msg) msg.textContent = '비밀번호가 올바르지 않습니다.';
-        if (input) {
-          input.value = '';
-          input.focus();
-        }
-        return;
-      }
-
-      localStorage.setItem('hospital_password', PAGE_PASSWORD);
-      hidePagePasswordOverlay();
-
-      const icaoEl = document.getElementById('icao');
-      if (icaoEl) icaoEl.focus();
-    }
-
-
     let map;
     let airportMarker = null;
     let radiusCircle = null;
@@ -1127,7 +974,7 @@
     async function login() {
       const passwordInput = document.getElementById('password');
       const msg = document.getElementById('loginMsg');
-      const password = passwordInput.value.trim();
+      const password = passwordInput.value.trim().toUpperCase();
 
       msg.className = 'msg';
       msg.textContent = '';
@@ -1165,7 +1012,7 @@
       localStorage.removeItem('hospital_password');
       document.getElementById('password').value = '';
       document.getElementById('icao').value = '';
-      document.getElementById('radius').value = '20';
+      document.getElementById('radius').value = '10';
       document.getElementById('searchMsg').textContent = '';
       document.getElementById('loginMsg').textContent = '';
       document.getElementById('resultInfo').style.display = 'none';
@@ -1174,7 +1021,7 @@
       resetTable();
       clearMapObjects();
       resetDetailsBox();
-      showPagePasswordOverlay();
+      showLoginView();
     }
 
   async function searchHospitals(retryCount = 0) {
@@ -1598,11 +1445,20 @@
     }
 
     function showLoginView() {
-      showPagePasswordOverlay();
+      document.body.classList.add('login-modal-open');
+      document.getElementById('loginCard').classList.remove('hidden');
+      document.getElementById('searchCard').classList.remove('hidden');
+
+      setTimeout(() => {
+        const passwordEl = document.getElementById('password');
+        if (passwordEl) passwordEl.focus();
+      }, 100);
     }
 
     function showSearchView() {
-      hidePagePasswordOverlay();
+      document.body.classList.remove('login-modal-open');
+      document.getElementById('loginCard').classList.add('hidden');
+      document.getElementById('searchCard').classList.remove('hidden');
       initMap();
 
       setTimeout(() => {
@@ -1610,8 +1466,7 @@
         if (map) map.invalidateSize();
       }, 300);
 
-      const icaoEl = document.getElementById('icao');
-      if (icaoEl) icaoEl.focus();
+      document.getElementById('icao').focus();
     }
 
     function escapeHtml(value) {
@@ -1627,17 +1482,6 @@
       const passwordEl = document.getElementById('password');
       const icaoEl = document.getElementById('icao');
       const radiusEl = document.getElementById('radius');
-
-      const pagePasswordInput = document.getElementById('pagePasswordInput');
-
-      if (pagePasswordInput) {
-        pagePasswordInput.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            checkPagePassword();
-          }
-        });
-      }
 
       if (passwordEl) {
         passwordEl.addEventListener('keydown', function (e) {
@@ -1669,13 +1513,7 @@
 
     window.addEventListener('load', () => {
       localStorage.removeItem('hospital_password');
-      initMap();
-      showPagePasswordOverlay();
-
-      setTimeout(() => {
-        window.scrollTo(0, 0);
-        if (map) map.invalidateSize();
-      }, 350);
+      showLoginView();
     });
 
     window.addEventListener('resize', () => {
