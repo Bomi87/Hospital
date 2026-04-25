@@ -756,6 +756,56 @@
       }
     }
 
+
+    .korean-map-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .korean-map-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      line-height: 1.2;
+      border: 1px solid #dbe3ef;
+      background: #f8fafc;
+      color: #1f2937;
+    }
+
+    .korean-map-link:hover {
+      text-decoration: none;
+      background: #eef4ff;
+    }
+
+    .popup-map-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .popup-map-links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+      border: 1px solid #dbe3ef;
+      background: #f8fafc;
+      color: #1f2937;
+    }
+
   </style>
 </head>
 <body>
@@ -1218,6 +1268,7 @@
             ? `<a class="detail-link" href="${escapeHtml(item.google_maps_url)}" target="_blank" rel="noopener noreferrer">구글맵에서 열기</a>`
             : '정보 없음'}
         </div>
+        ${buildKoreanMapLinksHtml(item)}
       `;
     }
 
@@ -1298,6 +1349,84 @@
       });
     }
 
+
+    function isKoreanHospital(item) {
+      const lat = Number(item && item.lat);
+      const lng = Number(item && item.lng);
+
+      // Korea bounding box: includes Jeju and most domestic airport/hospital coordinates.
+      if (
+        isFinite(lat) &&
+        isFinite(lng) &&
+        lat >= 33.0 &&
+        lat <= 39.8 &&
+        lng >= 124.0 &&
+        lng <= 132.5
+      ) {
+        return true;
+      }
+
+      const text = String(
+        ((item && item.address) || '') + ' ' +
+        ((item && item.full_address) || '')
+      ).toLowerCase();
+
+      return (
+        /[가-힣]/.test(text) ||
+        text.indexOf('south korea') > -1 ||
+        text.indexOf('republic of korea') > -1 ||
+        text.indexOf('korea') > -1 ||
+        text.indexOf('대한민국') > -1 ||
+        text.indexOf('한국') > -1
+      );
+    }
+
+    function buildKakaoDirectionUrl(item) {
+      const lat = Number(item && item.lat);
+      const lng = Number(item && item.lng);
+      const name = String((item && item.name) || 'Hospital').trim() || 'Hospital';
+
+      if (!isFinite(lat) || !isFinite(lng)) return '';
+
+      return 'https://map.kakao.com/link/to/' +
+        encodeURIComponent(name) + ',' +
+        encodeURIComponent(String(lat)) + ',' +
+        encodeURIComponent(String(lng));
+    }
+
+    function buildNaverDirectionUrl(item) {
+      const lat = Number(item && item.lat);
+      const lng = Number(item && item.lng);
+      const name = String((item && item.name) || 'Hospital').trim() || 'Hospital';
+
+      if (!isFinite(lat) || !isFinite(lng)) return '';
+
+      return 'https://map.naver.com/p/directions/-/' +
+        encodeURIComponent(String(lng)) + ',' +
+        encodeURIComponent(String(lat)) + ',' +
+        encodeURIComponent(name) +
+        ',PLACE_POI/-/car';
+    }
+
+    function buildKoreanMapLinksHtml(item, isPopup = false) {
+      if (!item || !isKoreanHospital(item)) return '';
+
+      const kakaoUrl = buildKakaoDirectionUrl(item);
+      const naverUrl = buildNaverDirectionUrl(item);
+
+      if (!kakaoUrl && !naverUrl) return '';
+
+      const wrapClass = isPopup ? 'popup-map-links' : 'korean-map-links';
+      const linkClass = isPopup ? '' : 'korean-map-link';
+
+      return `
+        <div class="${wrapClass}">
+          ${kakaoUrl ? `<a class="${linkClass}" href="${escapeHtml(kakaoUrl)}" target="_blank" rel="noopener noreferrer">카카오맵 길찾기</a>` : ''}
+          ${naverUrl ? `<a class="${linkClass}" href="${escapeHtml(naverUrl)}" target="_blank" rel="noopener noreferrer">네이버맵 길찾기</a>` : ''}
+        </div>
+      `;
+    }
+
     function buildPopupHtml(item, isTop) {
       return `
         <div>
@@ -1317,6 +1446,7 @@
               ? `<a class="detail-link" href="${escapeHtml(item.website)}" target="_blank" rel="noopener noreferrer">Open</a>`
               : '정보 없음'}
           </div>
+          ${buildKoreanMapLinksHtml(item, true)}
         </div>
       `;
     }
