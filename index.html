@@ -419,54 +419,6 @@
       font-weight: 600;
     }
 
-
-    .password-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 99999;
-      background: rgba(15, 23, 42, 0.72);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-    }
-
-    .password-modal {
-      width: 100%;
-      max-width: 360px;
-      background: #fff;
-      border-radius: 16px;
-      padding: 22px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
-    }
-
-    .password-modal h2 {
-      margin: 0 0 8px;
-      font-size: 21px;
-    }
-
-    .password-modal .modal-sub {
-      font-size: 13px;
-      color: #666;
-      margin-bottom: 14px;
-    }
-
-    .password-modal input {
-      font-size: 16px !important;
-    }
-
-    .password-modal button {
-      width: 100%;
-      margin-top: 10px;
-    }
-
-    .password-error {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #c62828;
-      min-height: 18px;
-    }
-
     @media (max-width: 1180px) {
       .content-grid {
         grid-template-columns: 1fr;
@@ -707,9 +659,9 @@
         outline-offset: -2px;
       }
     }
-  
 
-    .password-overlay {
+    /* ===== Page Password Modal ===== */
+    .page-password-overlay {
       position: fixed;
       inset: 0;
       z-index: 99999;
@@ -717,162 +669,176 @@
       align-items: center;
       justify-content: center;
       padding: 18px;
-      background: rgba(2, 10, 24, 0.58);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(15, 23, 42, 0.38);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
     }
 
-    .password-overlay.hidden {
-      display: none;
+    .page-password-overlay.hidden {
+      display: none !important;
     }
 
-    .password-modal {
-      width: 100%;
-      max-width: 580px;
-      padding: 26px 26px 24px;
-      border-radius: 22px;
-      background: linear-gradient(180deg, rgba(15, 27, 52, 0.98) 0%, rgba(13, 22, 42, 0.98) 100%);
-      border: 1px solid rgba(106, 145, 212, 0.18);
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
-      color: #f3f7ff;
+    .page-password-modal {
+      width: min(92vw, 560px);
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+      padding: 24px 26px 26px;
+      color: #111827;
     }
 
-    .password-modal h2 {
-      margin: 0 0 16px;
-      font-size: 22px;
+    .page-password-title {
+      margin: 0 0 14px;
+      font-size: 23px;
       font-weight: 800;
       letter-spacing: -0.02em;
-      color: #f8fbff;
     }
 
-    .password-modal .modal-sub {
-      font-size: 14px;
-      line-height: 1.6;
-      color: rgba(230, 238, 255, 0.72);
+    .page-password-sub {
       margin-bottom: 18px;
-    }
-
-    .password-modal input {
-      width: 100%;
-      height: 60px;
-      border-radius: 18px;
-      border: 1px solid rgba(112, 145, 207, 0.2);
-      background: rgba(8, 18, 37, 0.74);
-      color: #ffffff;
-      font-size: 26px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      padding: 0 18px;
-      outline: none;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
-    }
-
-    .password-modal input::placeholder {
-      color: rgba(210, 223, 255, 0.28);
-      letter-spacing: 0;
+      color: #64748b;
       font-size: 15px;
-      font-weight: 500;
+      line-height: 1.5;
     }
 
-    .password-modal input:focus {
-      border-color: rgba(122, 174, 255, 0.45);
-      box-shadow: 0 0 0 4px rgba(86, 145, 255, 0.12);
+    .page-password-modal input {
+      width: 100%;
+      height: 58px;
+      border-radius: 14px;
+      border: 1px solid #d0d7de;
+      background: #fff;
+      color: #111827;
+      font-size: 18px !important;
+      padding: 0 16px;
+      outline: none;
     }
 
-    .password-modal-actions {
-      margin-top: 20px;
+    .page-password-modal input:focus {
+      border-color: #1f5eff;
+      box-shadow: 0 0 0 4px rgba(31, 94, 255, 0.12);
+    }
+
+    .page-password-error {
+      min-height: 20px;
+      margin-top: 10px;
+      color: #c62828;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .page-password-actions {
       display: flex;
       justify-content: flex-end;
       gap: 12px;
-      flex-wrap: wrap;
+      margin-top: 14px;
     }
 
-    .password-modal .modal-btn {
-      min-width: 88px;
-      height: 58px;
-      border-radius: 16px;
-      padding: 0 22px;
-      font-size: 16px;
+    .page-password-btn {
+      min-width: 78px;
+      height: 48px;
+      border-radius: 12px;
+      font-size: 15px;
       font-weight: 800;
     }
 
-    .password-modal .modal-btn.cancel {
-      background: rgba(10, 22, 45, 0.92);
-      border: 1px solid rgba(100, 136, 201, 0.2);
-      color: #eef4ff;
+    .page-password-btn.cancel {
+      background: #111827;
+      color: #fff;
     }
 
-    .password-modal .modal-btn.confirm {
-      background: linear-gradient(180deg, #7bb2ff 0%, #5d9df3 100%);
-      color: #ffffff;
+    .page-password-btn.confirm {
+      background: #5a9df8;
+      color: #fff;
     }
 
-    .password-error {
-      min-height: 20px;
-      margin-top: 12px;
-      font-size: 13px;
-      color: #ff9d9d;
-    }
-
-    .app-locked {
+    body.page-locked {
       overflow: hidden;
     }
 
+    @media (prefers-color-scheme: dark) {
+      .page-password-overlay {
+        background: rgba(2, 6, 23, 0.58);
+      }
+
+      .page-password-modal {
+        background: #111827;
+        border-color: rgba(148, 163, 184, 0.22);
+        color: #f8fafc;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48);
+      }
+
+      .page-password-sub {
+        color: #94a3b8;
+      }
+
+      .page-password-modal input {
+        background: #0b1220;
+        border-color: rgba(148, 163, 184, 0.24);
+        color: #f8fafc;
+      }
+
+      .page-password-btn.cancel {
+        background: #0b1220;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+      }
+    }
+
     @media (max-width: 768px) {
-      .password-overlay {
+      .page-password-overlay {
+        align-items: center;
         padding: 14px;
       }
 
-      .password-modal {
-        max-width: 100%;
-        border-radius: 20px;
-        padding: 22px 18px 18px;
-      }
-
-      .password-modal h2 {
-        font-size: 20px;
-        margin-bottom: 14px;
-      }
-
-      .password-modal .modal-sub {
-        font-size: 13px;
-        margin-bottom: 14px;
-      }
-
-      .password-modal input {
-        height: 56px;
-        font-size: 22px;
+      .page-password-modal {
+        width: 100%;
         border-radius: 16px;
+        padding: 22px 18px 20px;
       }
 
-      .password-modal-actions {
-        margin-top: 16px;
+      .page-password-title {
+        font-size: 21px;
       }
 
-      .password-modal .modal-btn {
-        min-width: 78px;
+      .page-password-sub {
+        font-size: 14px;
+      }
+
+      .page-password-modal input {
         height: 54px;
-        border-radius: 15px;
+        font-size: 16px !important;
+      }
+
+      .page-password-actions {
+        gap: 10px;
+      }
+
+      .page-password-btn {
+        height: 48px;
+        min-width: 74px;
       }
     }
 
   </style>
 </head>
-<body class="app-locked">
-  <div id="passwordOverlay" class="password-overlay">
-    <div class="password-modal" role="dialog" aria-modal="true" aria-labelledby="passwordModalTitle">
-      <h2 id="passwordModalTitle">D-ATIS</h2>
-      <div class="modal-sub">비밀번호를 입력한 뒤 이용할 수 있습니다.</div>
+<body class="page-locked">
+  <div id="pagePasswordOverlay" class="page-password-overlay">
+    <div class="page-password-modal" role="dialog" aria-modal="true" aria-labelledby="pagePasswordTitle">
+      <h2 id="pagePasswordTitle" class="page-password-title">Hospital Search</h2>
+      <div class="page-password-sub">비밀번호를 입력한 뒤 이용할 수 있습니다.</div>
+
       <input
         type="password"
         id="pagePasswordInput"
         placeholder="Password"
         autocomplete="off"
       />
-      <div id="pagePasswordMsg" class="password-error"></div>
-      <div class="password-modal-actions">
-        <button type="button" class="modal-btn cancel" onclick="clearPagePasswordInput()">취소</button>
-        <button type="button" class="modal-btn confirm" onclick="checkPagePassword()">확인</button>
+
+      <div id="pagePasswordMsg" class="page-password-error"></div>
+
+      <div class="page-password-actions">
+        <button type="button" class="page-password-btn cancel" onclick="clearPagePasswordInput()">취소</button>
+        <button type="button" class="page-password-btn confirm" onclick="checkPagePassword()">확인</button>
       </div>
     </div>
   </div>
@@ -1010,80 +976,79 @@
 
     const PAGE_PASSWORD = 'HL8080';
 
-function showPagePasswordOverlay() {
-  const overlay = document.getElementById('passwordOverlay');
-  const input = document.getElementById('pagePasswordInput');
-  const msg = document.getElementById('pagePasswordMsg');
+    function showPagePasswordOverlay() {
+      const overlay = document.getElementById('pagePasswordOverlay');
+      const input = document.getElementById('pagePasswordInput');
+      const msg = document.getElementById('pagePasswordMsg');
 
-  if (overlay) overlay.classList.remove('hidden');
-  document.body.classList.add('app-locked');
+      if (overlay) overlay.classList.remove('hidden');
+      document.body.classList.add('page-locked');
 
-  if (msg) msg.textContent = '';
-  if (input) {
-    input.value = '';
-    setTimeout(() => input.focus(), 80);
-  }
-}
-
-function hidePagePasswordOverlay() {
-  const overlay = document.getElementById('passwordOverlay');
-  if (overlay) overlay.classList.add('hidden');
-  document.body.classList.remove('app-locked');
-}
-
-function clearPagePasswordInput() {
-  const input = document.getElementById('pagePasswordInput');
-  const msg = document.getElementById('pagePasswordMsg');
-  if (input) {
-    input.value = '';
-    input.focus();
-  }
-  if (msg) msg.textContent = '';
-}
-
-async function checkPagePassword() {
-  const input = document.getElementById('pagePasswordInput');
-  const msg = document.getElementById('pagePasswordMsg');
-
-  const value = String((input && input.value) || '').trim().toUpperCase();
-  const correctPassword = PAGE_PASSWORD.toUpperCase();
-
-  if (msg) msg.textContent = '';
-
-  if (!value) {
-    if (msg) msg.textContent = '비밀번호를 입력해 주세요.';
-    if (input) input.focus();
-    return;
-  }
-
-  if (value !== correctPassword) {
-    if (msg) msg.textContent = '비밀번호가 올바르지 않습니다.';
-    if (input) {
-      input.value = '';
-      input.focus();
-    }
-    return;
-  }
-
-  try {
-    if (msg) msg.textContent = '확인 중...';
-
-    const data = await postToServer({
-      action: 'login',
-      password: PAGE_PASSWORD
-    });
-
-    if (!data.success) {
-      if (msg) msg.textContent = data.message || '비밀번호 확인 실패';
-      return;
+      if (msg) msg.textContent = '';
+      if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 100);
+      }
     }
 
-    localStorage.setItem('hospital_password', PAGE_PASSWORD);
-    hidePagePasswordOverlay();
-  } catch (err) {
-    if (msg) msg.textContent = '비밀번호 확인 중 오류가 발생했습니다.';
-  }
-}
+    function hidePagePasswordOverlay() {
+      const overlay = document.getElementById('pagePasswordOverlay');
+      if (overlay) overlay.classList.add('hidden');
+      document.body.classList.remove('page-locked');
+      setTimeout(() => {
+        if (map) map.invalidateSize();
+      }, 250);
+    }
+
+    function clearPagePasswordInput() {
+      const input = document.getElementById('pagePasswordInput');
+      const msg = document.getElementById('pagePasswordMsg');
+
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+      if (msg) msg.textContent = '';
+    }
+
+    function checkPagePassword() {
+      const input = document.getElementById('pagePasswordInput');
+      const msg = document.getElementById('pagePasswordMsg');
+
+      const value = String((input && input.value) || '').trim().toUpperCase();
+      const correctPassword = PAGE_PASSWORD.toUpperCase();
+
+      if (msg) msg.textContent = '';
+
+      if (!value) {
+        if (msg) msg.textContent = '비밀번호를 입력해 주세요.';
+        if (input) input.focus();
+        return;
+      }
+
+      if (value !== correctPassword) {
+        if (msg) msg.textContent = '비밀번호가 올바르지 않습니다.';
+        if (input) {
+          input.value = '';
+          input.focus();
+        }
+        return;
+      }
+
+      localStorage.setItem('hospital_password', PAGE_PASSWORD);
+      hidePagePasswordOverlay();
+
+      const icaoEl = document.getElementById('icao');
+      if (icaoEl) icaoEl.focus();
+    }
+
+
+    let map;
+    let airportMarker = null;
+    let radiusCircle = null;
+    let hospitalMarkers = [];
+    let currentResults = [];
+    let selectedHospitalIndex = -1;
 
     function initMap() {
       if (map) return;
@@ -1645,7 +1610,8 @@ async function checkPagePassword() {
         if (map) map.invalidateSize();
       }, 300);
 
-      document.getElementById('icao').focus();
+      const icaoEl = document.getElementById('icao');
+      if (icaoEl) icaoEl.focus();
     }
 
     function escapeHtml(value) {
@@ -1661,6 +1627,7 @@ async function checkPagePassword() {
       const passwordEl = document.getElementById('password');
       const icaoEl = document.getElementById('icao');
       const radiusEl = document.getElementById('radius');
+
       const pagePasswordInput = document.getElementById('pagePasswordInput');
 
       if (pagePasswordInput) {
@@ -1702,8 +1669,8 @@ async function checkPagePassword() {
 
     window.addEventListener('load', () => {
       localStorage.removeItem('hospital_password');
-      showPagePasswordOverlay();
       initMap();
+      showPagePasswordOverlay();
 
       setTimeout(() => {
         window.scrollTo(0, 0);
